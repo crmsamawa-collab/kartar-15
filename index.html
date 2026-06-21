@@ -691,7 +691,6 @@
     import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // --- 1. FIREBASE CONFIGURATION LOAD (SECURE PRIVACY PATTERN) ---
-    // Mencari kunci aman dari lokal, Vercel API, atau default platform preview
     let firebaseConfig = null;
     
     // Periksa apakah ada konfigurasi kustom yang disimpan privat di browser
@@ -704,18 +703,7 @@
       }
     }
 
-    // Jika belum ada di penyimpanan lokal, cek apakah disuplai dari runtime platform (__firebase_config)
-    if (!firebaseConfig) {
-      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        try {
-          firebaseConfig = JSON.parse(__firebase_config);
-        } catch (err) {
-          console.warn("Gagal parsing __firebase_config.");
-        }
-      }
-    }
-
-    // Jika masih kosong, coba tarik dari endpoint API rahasia serverless Vercel
+    // Jika belum ada di penyimpanan lokal, coba tarik dari endpoint API rahasia serverless Vercel
     if (!firebaseConfig || !firebaseConfig.apiKey) {
       try {
         const secureEnvFetch = await fetch('/api/config');
@@ -727,7 +715,18 @@
           }
         }
       } catch (err) {
-        console.log("Rute API /api/config belum dikonfigurasi.");
+        console.log("Rute API /api/config belum merespon atau belum dikonfigurasi.");
+      }
+    }
+
+    // Jika masih kosong, cek apakah disuplai dari runtime platform (__firebase_config)
+    if (!firebaseConfig || !firebaseConfig.apiKey) {
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try {
+          firebaseConfig = JSON.parse(__firebase_config);
+        } catch (err) {
+          console.warn("Gagal parsing __firebase_config.");
+        }
       }
     }
 
@@ -795,11 +794,15 @@
       if (firebaseAvailable) {
         try {
           // --- RULE 3 - Auth Sebelum Query ---
-          if (initialAuthToken) {
-            await signInWithCustomToken(auth, initialAuthToken);
-          } else {
-            await signInAnonymously(auth);
-          }
+          const initAuth = async () => {
+            if (initialAuthToken) {
+              await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+              await signInAnonymously(auth);
+            }
+          };
+          
+          await initAuth();
 
           onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -936,7 +939,7 @@
           }
         }
         renderMemberManagement();
-      });
+      }, (err) => console.error("Koneksi Firestore terganggu:", err));
 
       // Sync Posts
       onSnapshot(getPublicCollectionRef('posts'), (snap) => {
@@ -945,7 +948,7 @@
         p.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localPosts = p;
         renderFeed();
-      });
+      }, (err) => console.error(err));
 
       // Sync Events
       onSnapshot(getPublicCollectionRef('events'), (snap) => {
@@ -954,7 +957,7 @@
         e.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localEvents = e;
         renderEvents();
-      });
+      }, (err) => console.error(err));
 
       // Sync Cuan ideas
       onSnapshot(getPublicCollectionRef('cuan'), (snap) => {
@@ -963,7 +966,7 @@
         c.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
         localCuanIdeas = c;
         renderCuanIdeas();
-      });
+      }, (err) => console.error(err));
 
       // Sync Finances
       onSnapshot(getPublicCollectionRef('transactions'), (snap) => {
@@ -972,7 +975,7 @@
         t.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localTransactions = t;
         renderFinance();
-      });
+      }, (err) => console.error(err));
 
       // Sync Polls
       onSnapshot(getPublicCollectionRef('polls'), (snap) => {
@@ -981,7 +984,7 @@
         pl.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localPolls = pl;
         renderPolls();
-      });
+      }, (err) => console.error(err));
     }
 
     function loadMockDatabase() {
@@ -1937,6 +1940,58 @@
       window.showToast("Konfigurasi di-reset ke default. Memuat ulang...");
       setTimeout(() => { window.location.reload(); }, 1500);
     };
+
+    // Attach all handlers explicitly to window
+    window.renderMenuSubTabContents = function() {
+      const ukmList = [
+        { id: 1, title: "Kopi Tetangga RT 03", desc: "Es kopi susu kekinian spesial biji kopi lokal asli. Diskon 15% khusus warga RW 15!", contact: "628123456789", icon: "fa-mug-hot" },
+        { id: 2, title: "Dapur Ceria RT 01", desc: "Menerima pesanan katering, nasi box, dan aneka jajanan pasar higienis untuk acara warga.", contact: "628112233445", icon: "fa-pizza-slice" }
+      ];
+      const hobiClubs = [
+        { name: "Karta E-Sports", members: "45 Anggota", icon: "fa-gamepad", bg: "from-purple-900 to-indigo-900" },
+        { name: "Karta FC (Futsal & Bola)", members: "32 Anggota", icon: "fa-volleyball", bg: "from-emerald-900 to-teal-900" }
+      ];
+
+      const ukmContainer = document.getElementById('menu-ukm-container');
+      if (ukmContainer) {
+        ukmContainer.innerHTML = "";
+        ukmList.forEach(ukm => {
+          const card = document.createElement('div');
+          card.className = "bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-between";
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-amber-400 text-[10px]"><i class="fa-solid ${ukm.icon}"></i></span>
+              </div>
+              <h4 class="text-[10px] font-bold text-white line-clamp-1">${ukm.title}</h4>
+              <p class="text-[8px] text-slate-400 line-clamp-2 mt-0.5">${ukm.desc}</p>
+            </div>
+            <a href="https://wa.me/${ukm.contact}" target="_blank" class="mt-2 block w-full text-center py-1 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/10 text-emerald-400 rounded-md text-[8px] font-bold">Pesan WA</a>
+          `;
+          ukmContainer.appendChild(card);
+        });
+      }
+
+      const hobiContainer = document.getElementById('menu-hobi-container');
+      if (hobiContainer) {
+        hobiContainer.innerHTML = "";
+        hobiClubs.forEach(club => {
+          const item = document.createElement('div');
+          item.className = "bg-slate-950 p-2 rounded-lg border border-slate-800 flex items-center justify-between";
+          item.innerHTML = `
+            <div class="flex items-center gap-1.5">
+              <span class="text-indigo-400 text-xs"><i class="fa-solid ${club.icon}"></i></span>
+              <div>
+                <h4 class="text-[10px] font-bold text-white leading-none">${club.name}</h4>
+                <span class="text-[8px] text-slate-500">${club.members}</span>
+              </div>
+            </div>
+            <button onclick="showToast('Sukses bergabung ke grup hobi!')" class="text-[8px] bg-slate-900 border border-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded">Gabung</button>
+          `;
+          hobiContainer.appendChild(item);
+        });
+      }
+    };
   </script>
 
   <script>
@@ -2083,57 +2138,6 @@
       showToast("Tautan ajakan telah sukses disalin ke clipboard!");
     }
 
-    function renderMenuSubTabContents() {
-      const ukmList = [
-        { id: 1, title: "Kopi Tetangga RT 03", desc: "Es kopi susu kekinian spesial biji kopi lokal asli. Diskon 15% khusus warga RW 15!", contact: "628123456789", icon: "fa-mug-hot" },
-        { id: 2, title: "Dapur Ceria RT 01", desc: "Menerima pesanan katering, nasi box, dan aneka jajanan pasar higienis untuk acara warga.", contact: "628112233445", icon: "fa-pizza-slice" }
-      ];
-      const hobiClubs = [
-        { name: "Karta E-Sports", members: "45 Anggota", icon: "fa-gamepad", bg: "from-purple-900 to-indigo-900" },
-        { name: "Karta FC (Futsal & Bola)", members: "32 Anggota", icon: "fa-volleyball", bg: "from-emerald-900 to-teal-900" }
-      ];
-
-      const ukmContainer = document.getElementById('menu-ukm-container');
-      if (ukmContainer) {
-        ukmContainer.innerHTML = "";
-        ukmList.forEach(ukm => {
-          const card = document.createElement('div');
-          card.className = "bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-between";
-          card.innerHTML = `
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-amber-400 text-[10px]"><i class="fa-solid ${ukm.icon}"></i></span>
-              </div>
-              <h4 class="text-[10px] font-bold text-white line-clamp-1">${ukm.title}</h4>
-              <p class="text-[8px] text-slate-400 line-clamp-2 mt-0.5">${ukm.desc}</p>
-            </div>
-            <a href="https://wa.me/${ukm.contact}" target="_blank" class="mt-2 block w-full text-center py-1 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/10 text-emerald-400 rounded-md text-[8px] font-bold">Pesan WA</a>
-          `;
-          ukmContainer.appendChild(card);
-        });
-      }
-
-      const hobiContainer = document.getElementById('menu-hobi-container');
-      if (hobiContainer) {
-        hobiContainer.innerHTML = "";
-        hobiClubs.forEach(club => {
-          const item = document.createElement('div');
-          item.className = "bg-slate-950 p-2 rounded-lg border border-slate-800 flex items-center justify-between";
-          item.innerHTML = `
-            <div class="flex items-center gap-1.5">
-              <span class="text-indigo-400 text-xs"><i class="fa-solid ${club.icon}"></i></span>
-              <div>
-                <h4 class="text-[10px] font-bold text-white leading-none">${club.name}</h4>
-                <span class="text-[8px] text-slate-500">${club.members}</span>
-              </div>
-            </div>
-            <button onclick="showToast('Sukses bergabung ke grup hobi!')" class="text-[8px] bg-slate-900 border border-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded">Gabung</button>
-          `;
-          hobiContainer.appendChild(item);
-        });
-      }
-    }
-
     function formatRupiah(number) {
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
     }
@@ -2159,7 +2163,6 @@
     window.openConfigModal = openConfigModal;
     window.closeConfigModal = closeConfigModal;
     window.shareKartaCard = shareKartaCard;
-    window.renderMenuSubTabContents = renderMenuSubTabContents;
     window.formatRupiah = formatRupiah;
   </script>
 </body>
