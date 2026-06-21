@@ -690,128 +690,131 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- 1. FIREBASE CONFIGURATION LOAD (SECURE PRIVACY PATTERN) ---
-    let firebaseConfig = null;
-    
-    // Periksa apakah ada konfigurasi kustom yang disimpan privat di browser
-    const storedConfig = localStorage.getItem('kartar15_secure_config');
-    if (storedConfig) {
-      try {
-        firebaseConfig = JSON.parse(storedConfig);
-      } catch (err) {
-        console.warn("Kredensial lokal rusak.");
-      }
-    }
+    // --- 1. CONFIGURATION LOADING ---
+    let localUsers = [
+      { name: "Fajar Pratama", phone: "082111111111", password: "123456", rt: "RT 02", role: "Ketua", hobby: "Futsal & Memimpin", joinDate: "05 Jan 2026", memberId: "K15-2026-112" },
+      { name: "Bagas Saputra", phone: "082444444444", password: "123456", rt: "RT 04", role: "Wakil Ketua", hobby: "Mobile Legends", joinDate: "15 Feb 2026", memberId: "K15-2026-302" },
+      { name: "Siti Rahma", phone: "082333333333", password: "123456", rt: "RT 05", role: "Bendahara", hobby: "Membaca & Akuntansi", joinDate: "12 Mar 2026", memberId: "K15-2026-441" },
+      { name: "Rian Anggara", phone: "082222222222", password: "123456", rt: "RT 03", role: "Anggota", hobby: "MLBB & Musik", joinDate: "21 Jun 2026", memberId: "K15-2026-987" }
+    ];
+    let localPosts = [];
+    let localEvents = [];
+    let localCuanIdeas = [];
+    let localTransactions = [];
+    let localPolls = [];
+    let currentUser = null;
+    let selectedPostCategory = "Umum";
 
-    // Jika belum ada lokal, ambil dari __firebase_config jika disuplai oleh lingkungan platform
-    if (!firebaseConfig) {
-      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        try {
-          firebaseConfig = JSON.parse(__firebase_config);
-        } catch (err) {
-          console.warn("Gagal parsing __firebase_config.");
+    let app = null;
+    let auth = null;
+    let db = null;
+    let appId = typeof __app_id !== 'undefined' ? __app_id : 'kartar15-rw15-production';
+    let initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    let firebaseAvailable = false;
+
+    const getPublicCollectionRef = (collectionName) => collection(db, 'artifacts', appId, 'public', 'data', collectionName);
+    const getPublicDocRef = (collectionName, docId) => doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
+
+    // Memperbarui visual indikator koneksi di pojok kanan atas secara instan
+    function updateConnectionIndicator(connected, text) {
+      const dot = document.getElementById('db-indicator-dot');
+      const label = document.getElementById('db-indicator-text');
+      if (dot && label) {
+        if (connected) {
+          dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+          label.innerText = text;
+          label.className = "text-emerald-400";
+        } else {
+          dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
+          label.innerText = text;
+          label.className = "text-amber-500";
         }
       }
     }
 
-    // Memuat asinkron secara aman dari Vercel Endpoint, dengan timeout agar tidak memblokir alur utama
-    async function loadConfigFromServer() {
-      if (firebaseConfig && firebaseConfig.apiKey) return;
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500); // 2.5 Detik timeout batas toleransi
-      
-      try {
-        const response = await fetch('/api/config', { signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (response.ok) {
-          const fetchedConfig = await response.json();
-          if (fetchedConfig && fetchedConfig.apiKey && fetchedConfig.apiKey !== "") {
-            firebaseConfig = fetchedConfig;
-            console.log("Konfigurasi privat berhasil ditarik dari serverless api.");
-          }
-        }
-      } catch (err) {
-        clearTimeout(timeoutId);
-        console.log("Menggunakan database luring / konfigurasi manual.");
-      }
-    }
-
-    // Eksekusi utama sistem
-    async function initializeSystem() {
-      await loadConfigFromServer();
-
-      // Fallback Dummy jika semua cara di atas kosong agar tidak stuck di "Menghubungkan..."
-      if (!firebaseConfig) {
-        firebaseConfig = {
-          apiKey: "", 
-          authDomain: "",
-          projectId: "",
-          storageBucket: "",
-          messagingSenderId: "",
-          appId: ""
-        };
-      }
-
-      const isMockMode = !firebaseConfig.apiKey || firebaseConfig.apiKey === "" || firebaseConfig.apiKey.includes("INSERT_");
-
-      let app, auth, db;
-      let appId = typeof __app_id !== 'undefined' ? __app_id : 'kartar15-rw15-production';
-      let initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-      let firebaseAvailable = false;
-
-      // Inisialisasi Firebase Aman
-      try {
-        if (!isMockMode) {
-          app = initializeApp(firebaseConfig);
-          auth = getAuth(app);
-          db = getFirestore(app);
-          firebaseAvailable = true;
-        }
-      } catch (e) {
-        console.warn("Firebase tidak tersedia, dialihkan ke simulasi luring.");
-      }
-
-      // --- 2. LOCAL DATA STATE ---
-      const defaultLocalUsers = [
-        { name: "Fajar Pratama", phone: "082111111111", password: "123456", rt: "RT 02", role: "Ketua", hobby: "Futsal & Memimpin", joinDate: "05 Jan 2026", memberId: "K15-2026-112" },
-        { name: "Bagas Saputra", phone: "082444444444", password: "123456", rt: "RT 04", role: "Wakil Ketua", hobby: "Mobile Legends", joinDate: "15 Feb 2026", memberId: "K15-2026-302" },
-        { name: "Siti Rahma", phone: "082333333333", password: "123456", rt: "RT 05", role: "Bendahara", hobby: "Membaca & Akuntansi", joinDate: "12 Mar 2026", memberId: "K15-2026-441" },
-        { name: "Rian Anggara", phone: "082222222222", password: "123456", rt: "RT 03", role: "Anggota", hobby: "MLBB & Musik", joinDate: "21 Jun 2026", memberId: "K15-2026-987" }
+    function loadMockDatabase() {
+      updateConnectionIndicator(false, "Offline / Demo");
+      localPosts = [
+        { fireId: "m1", author: "Fajar Pratama", rt: "RT 02", role: "Ketua", category: "Kegiatan", text: "Halo pemuda RW 15! Kita bakal adain mabar futsal seru besok Sabtu jam 4 sore di lapangan utama. Yang mau join, RSVP di tab AGENDA ya!", likes: 12, likedBy: [], comments: [], time: "2 jam yang lalu" }
       ];
+      localEvents = [
+        { fireId: "e1", title: "Turnamen Mobile Legends Karta15", date: "28 Juni 2026", location: "Balai RW 15", desc: "Turnamen seru antar RT di lingkungan RW 15. Total hadiah jutaan rupiah!", attendees: 38, attendeesList: [] }
+      ];
+      localCuanIdeas = [
+        { fireId: "c1", title: "Karta Kreatif: Daur Ulang Botol Plastik", author: "Siti Rahma", rt: "RT 05", type: "Dana Kas Karta", desc: "Mengumpulkan botol plastik bekas untuk diolah menjadi pot hias bernilai jual tinggi.", upvotes: 21, upvotedBy: [], comments: [] }
+      ];
+      localTransactions = [
+        { fireId: "t1", date: "15 Jun 2026", desc: "Sponsorship Toko Sembako", type: "Masuk", amount: 500000, category: "Sponsor" }
+      ];
+      localPolls = [
+        { fireId: "p1", question: "Lomba utama apa yang paling seru buat 17 Agustusan nanti?", opt1: "Turnamen ML Antar RT", opt2: "Futsal Sarung Pasangan", votes1: 27, votes2: 15, voters: {}, totalVotes: 42 }
+      ];
+      renderAll();
+    }
 
-      let localUsers = [...defaultLocalUsers];
-      let localPosts = [];
-      let localEvents = [];
-      let localCuanIdeas = [];
-      let localTransactions = [];
-      let localPolls = [];
-      let currentUser = null;
-      let selectedPostCategory = "Umum";
+    // Fungsi Inisialisasi Firebase yang dibungkus agar aman dari Blocking Top-Level Await
+    function runSetup() {
+      let config = null;
 
-      const getPublicCollectionRef = (collectionName) => collection(db, 'artifacts', appId, 'public', 'data', collectionName);
-      const getPublicDocRef = (collectionName, docId) => doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
-
-      // Isikan data ke textarea setelan untuk kenyamanan pengguna
-      const textarea = document.getElementById('firebase-config-textarea');
-      if (textarea) {
-        textarea.value = JSON.stringify(firebaseConfig, null, 2);
+      // Ambil kustom lokal jika ada
+      const stored = localStorage.getItem('kartar15_secure_config');
+      if (stored) {
+        try { config = JSON.parse(stored); } catch (e) {}
       }
 
-      // --- 3. LIFECYCLE INITIALIZER & AUTH ---
-      if (firebaseAvailable) {
-        try {
-          // --- RULE 3 - Auth Sebelum Query ---
-          const initAuth = async () => {
-            if (initialAuthToken) {
-              await signInWithCustomToken(auth, initialAuthToken);
-            } else {
-              await signInAnonymously(auth);
-            }
-          };
-          
-          await initAuth();
+      // Ambil bawaan lingkungan platform
+      if (!config) {
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+          try { config = JSON.parse(__firebase_config); } catch (e) {}
+        }
+      }
 
+      // Jika belum ada konfigurasi, ambil asinkronis dari API dengan batas 1,2 detik
+      if (!config || !config.apiKey) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1200);
+
+        fetch('/api/config', { signal: controller.signal })
+          .then(res => res.json())
+          .then(data => {
+            clearTimeout(timeoutId);
+            if (data && data.apiKey) {
+              startFirebase(data);
+            } else {
+              loadMockDatabase();
+            }
+          })
+          .catch(() => {
+            clearTimeout(timeoutId);
+            loadMockDatabase();
+          });
+      } else {
+        startFirebase(config);
+      }
+    }
+
+    function startFirebase(config) {
+      if (!config || !config.apiKey || config.apiKey.includes("INSERT_")) {
+        loadMockDatabase();
+        return;
+      }
+
+      try {
+        app = initializeApp(config);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        firebaseAvailable = true;
+
+        // Otentikasi dan Sync Data Real-Time
+        const initAuth = async () => {
+          if (initialAuthToken) {
+            await signInWithCustomToken(auth, initialAuthToken);
+          } else {
+            await signInAnonymously(auth);
+          }
+        };
+
+        initAuth().then(() => {
           onAuthStateChanged(auth, async (user) => {
             if (user) {
               updateConnectionIndicator(true, "Terhubung (Firebase)");
@@ -820,867 +823,814 @@
               await checkAndInitializeDefaultData();
               setupRealTimeSync();
             } else {
-              fallbackToMock();
+              loadMockDatabase();
             }
           });
-        } catch (err) {
-          console.error("Gagal melakukan handshake dengan Firebase:", err);
-          fallbackToMock();
-        }
-      } else {
-        fallbackToMock();
-      }
+        }).catch(err => {
+          console.error("Gagal Otentikasi:", err);
+          loadMockDatabase();
+        });
 
-      function fallbackToMock() {
-        updateConnectionIndicator(false, "Offline / Demo");
+      } catch (err) {
+        console.error("Gagal Memulai Firebase:", err);
         loadMockDatabase();
       }
+    }
 
-      // Merubah visual indikator koneksi di pojok kanan atas
-      function updateConnectionIndicator(connected, text) {
-        const dot = document.getElementById('db-indicator-dot');
-        const label = document.getElementById('db-indicator-text');
-        if (dot && label) {
-          if (connected) {
-            dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
-            label.innerText = text;
-            label.className = "text-emerald-400";
-          } else {
-            dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
-            label.innerText = text;
-            label.className = "text-amber-500";
+    // Inisialisasi data default di cloud jika masih kosong
+    async function checkAndInitializeDefaultData() {
+      try {
+        const usersSnap = await getDocs(getPublicCollectionRef('users'));
+        if (usersSnap.empty) {
+          for (const u of localUsers) {
+            await setDoc(getPublicDocRef('users', u.phone), u);
+          }
+          const initialPost = {
+            author: "Fajar Pratama",
+            rt: "RT 02",
+            role: "Ketua",
+            category: "Kegiatan",
+            text: "Halo pemuda RW 15! Kita bakal adain mabar futsal seru besok Sabtu jam 4 sore di lapangan utama. Yang mau join, RSVP di tab AGENDA ya!",
+            likes: 12,
+            likedBy: [],
+            comments: [
+              { author: "Rian Anggara (RT 03)", text: "Gokil, siap ikut meramaikan bosku!" }
+            ],
+            timestamp: Date.now() - 7200000,
+            hasImage: false
+          };
+          await addDoc(getPublicCollectionRef('posts'), initialPost);
+
+          const initialEvent = {
+            title: "Turnamen Mobile Legends Karta15",
+            date: "28 Juni 2026",
+            location: "Balai RW 15",
+            desc: "Turnamen seru antar RT di lingkungan RW 15. Total hadiah jutaan rupiah!",
+            attendees: 38,
+            attendeesList: [],
+            timestamp: Date.now()
+          };
+          await addDoc(getPublicCollectionRef('events'), initialEvent);
+
+          const initialCuan = {
+            title: "Karta Kreatif: Daur Ulang Botol Plastik",
+            author: "Siti Rahma",
+            rt: "RT 05",
+            type: "Dana Kas Karta",
+            desc: "Mengumpulkan botol plastik bekas untuk diolah menjadi pot hias bernilai jual tinggi.",
+            upvotes: 21,
+            upvotedBy: [],
+            comments: [],
+            timestamp: Date.now()
+          };
+          await addDoc(getPublicCollectionRef('cuan'), initialCuan);
+
+          const initialTrans = {
+            date: "15 Jun 2026",
+            desc: "Sponsorship Toko Sembako",
+            type: "Masuk",
+            amount: 500000,
+            category: "Sponsor",
+            timestamp: Date.now() - 86400000
+          };
+          await addDoc(getPublicCollectionRef('transactions'), initialTrans);
+
+          const initialPoll = {
+            question: "Lomba utama apa yang paling seru buat 17 Agustusan nanti?",
+            opt1: "Turnamen ML Antar RT",
+            opt2: "Futsal Sarung Pasangan",
+            votes1: 27,
+            votes2: 15,
+            voters: {},
+            totalVotes: 42,
+            timestamp: Date.now()
+          };
+          await addDoc(getPublicCollectionRef('polls'), initialPoll);
+        }
+      } catch (e) {
+        console.warn("Gagal mengecek data awal cloud:", e);
+      }
+    }
+
+    function setupRealTimeSync() {
+      onSnapshot(getPublicCollectionRef('users'), (snap) => {
+        const u = [];
+        snap.forEach(doc => u.push(doc.data()));
+        if (u.length > 0) localUsers = u;
+        if (currentUser) {
+          const fresh = localUsers.find(user => user.phone === currentUser.phone);
+          if (fresh) {
+            currentUser = fresh;
+            updateRoleUIPermissions();
           }
         }
+        renderMemberManagement();
+      });
+
+      onSnapshot(getPublicCollectionRef('posts'), (snap) => {
+        const p = [];
+        snap.forEach(doc => p.push({ fireId: doc.id, ...doc.data() }));
+        p.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localPosts = p;
+        renderFeed();
+      });
+
+      onSnapshot(getPublicCollectionRef('events'), (snap) => {
+        const e = [];
+        snap.forEach(doc => e.push({ fireId: doc.id, ...doc.data() }));
+        e.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localEvents = e;
+        renderEvents();
+      });
+
+      onSnapshot(getPublicCollectionRef('cuan'), (snap) => {
+        const c = [];
+        snap.forEach(doc => c.push({ fireId: doc.id, ...doc.data() }));
+        c.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+        localCuanIdeas = c;
+        renderCuanIdeas();
+      });
+
+      onSnapshot(getPublicCollectionRef('transactions'), (snap) => {
+        const t = [];
+        snap.forEach(doc => t.push({ fireId: doc.id, ...doc.data() }));
+        t.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localTransactions = t;
+        renderFinance();
+      });
+
+      onSnapshot(getPublicCollectionRef('polls'), (snap) => {
+        const pl = [];
+        snap.forEach(doc => pl.push({ fireId: doc.id, ...doc.data() }));
+        pl.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localPolls = pl;
+        renderPolls();
+      });
+    }
+
+    // --- INTERACTIVE ACTIONS BIND TO WINDOW ---
+    window.handleLogin = async function() {
+      const identifier = document.getElementById('login-identifier').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!identifier || !password) {
+        window.showToast("Harap isi No. WhatsApp/Nama dan Kata Sandi!");
+        return;
       }
 
-      // Inisialisasi data awal di Firestore jika koleksi masih kosong
-      async function checkAndInitializeDefaultData() {
+      const user = localUsers.find(u => 
+        (u.phone === identifier || u.name.toLowerCase() === identifier.toLowerCase()) && 
+        u.password === password
+      );
+
+      if (!user) {
+        window.showToast("No. WhatsApp, Nama, atau Kata Sandi salah!");
+        return;
+      }
+
+      currentUser = user;
+
+      const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('avatar-placeholder').innerText = initials;
+      document.getElementById('menu-avatar').innerText = initials;
+      document.getElementById('menu-user-name').innerText = currentUser.name;
+      document.getElementById('menu-user-rt').innerText = `${currentUser.rt} / RW 15`;
+      document.getElementById('menu-user-role-badge').innerText = currentUser.role;
+
+      document.getElementById('card-initials').innerText = initials;
+      document.getElementById('card-name').innerText = currentUser.name;
+      document.getElementById('card-rt').innerText = `Asal: ${currentUser.rt} / RW 15`;
+      document.getElementById('card-id').innerText = `ID: ${currentUser.memberId}`;
+      document.getElementById('card-hobby').innerText = currentUser.hobby;
+      document.getElementById('card-date').innerText = currentUser.joinDate;
+
+      window.switchToScreen('app');
+      window.switchTab('feed'); 
+
+      updateRoleUIPermissions();
+      renderAll();
+      window.showToast(`Selamat datang kembali, ${currentUser.name}!`);
+    };
+
+    window.handleRegistration = async function(e) {
+      if (e) e.preventDefault();
+
+      const name = document.getElementById('reg-name').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const rt = document.getElementById('reg-rt').value;
+      const hobby = document.getElementById('reg-hobby').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      if (!name || !phone || !hobby || !password) {
+        window.showToast("Harap lengkapi semua bidang pendaftaran!");
+        return;
+      }
+
+      const isExist = localUsers.some(u => u.phone === phone);
+      if (isExist) {
+        window.showToast("Nomor WhatsApp ini sudah terdaftar!");
+        return;
+      }
+
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const todayStr = new Date().toLocaleDateString('id-ID', options);
+      const randomIdSuffix = Math.floor(Math.random() * 900) + 100;
+      const memberId = `K15-2026-${randomIdSuffix}`;
+
+      const newUser = {
+        name: name,
+        phone: phone,
+        password: password,
+        rt: rt,
+        role: "Anggota", 
+        hobby: hobby,
+        joinDate: todayStr,
+        memberId: memberId
+      };
+
+      if (firebaseAvailable) {
         try {
-          const usersSnap = await getDocs(getPublicCollectionRef('users'));
-          if (usersSnap.empty) {
-            // Input user demo awal
-            for (const u of defaultLocalUsers) {
-              await setDoc(getPublicDocRef('users', u.phone), u);
-            }
-            // Input post selamat datang awal
-            const initialPost = {
-              author: "Fajar Pratama",
-              rt: "RT 02",
-              role: "Ketua",
-              category: "Kegiatan",
-              text: "Halo pemuda RW 15! Kita bakal adain mabar futsal seru besok Sabtu jam 4 sore di lapangan utama. Yang mau join, RSVP di tab AGENDA ya!",
-              likes: 12,
-              likedBy: [],
-              comments: [
-                { author: "Rian Anggara (RT 03)", text: "Gokil, siap ikut meramaikan bosku!" }
-              ],
-              timestamp: Date.now() - 7200000,
-              hasImage: false
-            };
-            await addDoc(getPublicCollectionRef('posts'), initialPost);
-
-            // Input agenda awal
-            const initialEvent = {
-              title: "Turnamen Mobile Legends Karta15",
-              date: "28 Juni 2026",
-              location: "Balai RW 15",
-              desc: "Turnamen seru antar RT di lingkungan RW 15. Total hadiah jutaan rupiah!",
-              attendees: 38,
-              attendeesList: [],
-              timestamp: Date.now()
-            };
-            await addDoc(getPublicCollectionRef('events'), initialEvent);
-
-            // Input ide cuan awal
-            const initialCuan = {
-              title: "Karta Kreatif: Daur Ulang Botol Plastik",
-              author: "Siti Rahma",
-              rt: "RT 05",
-              type: "Dana Kas Karta",
-              desc: "Mengumpulkan botol plastik bekas untuk diolah menjadi pot hias bernilai jual tinggi.",
-              upvotes: 21,
-              upvotedBy: [],
-              comments: [],
-              timestamp: Date.now()
-            };
-            await addDoc(getPublicCollectionRef('cuan'), initialCuan);
-
-            // Input transaksi keuangan awal
-            const initialTrans = {
-              date: "15 Jun 2026",
-              desc: "Sponsorship Toko Sembako",
-              type: "Masuk",
-              amount: 500000,
-              category: "Sponsor",
-              timestamp: Date.now() - 86400000
-            };
-            await addDoc(getPublicCollectionRef('transactions'), initialTrans);
-
-            // Input jajak pendapat / polling awal
-            const initialPoll = {
-              question: "Lomba utama apa yang paling seru buat 17 Agustusan nanti?",
-              opt1: "Turnamen ML Antar RT",
-              opt2: "Futsal Sarung Pasangan",
-              votes1: 27,
-              votes2: 15,
-              voters: {},
-              totalVotes: 42,
-              timestamp: Date.now()
-            };
-            await addDoc(getPublicCollectionRef('polls'), initialPoll);
-          }
-        } catch (e) {
-          console.warn("Gagal mengecek atau membuat database awal:", e);
-        }
-      }
-
-      // --- 4. REAL-TIME SYNCHRONIZER (RULE 2 - No complex queries) ---
-      function setupRealTimeSync() {
-        // Sync Users
-        onSnapshot(getPublicCollectionRef('users'), (snap) => {
-          const u = [];
-          snap.forEach(doc => u.push(doc.data()));
-          if (u.length > 0) localUsers = u;
-          if (currentUser) {
-            const fresh = localUsers.find(user => user.phone === currentUser.phone);
-            if (fresh) {
-              currentUser = fresh;
-              updateRoleUIPermissions();
-            }
-          }
-          renderMemberManagement();
-        }, (err) => console.error("Koneksi Firestore terganggu:", err));
-
-        // Sync Posts
-        onSnapshot(getPublicCollectionRef('posts'), (snap) => {
-          const p = [];
-          snap.forEach(doc => p.push({ fireId: doc.id, ...doc.data() }));
-          p.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-          localPosts = p;
-          renderFeed();
-        }, (err) => console.error(err));
-
-        // Sync Events
-        onSnapshot(getPublicCollectionRef('events'), (snap) => {
-          const e = [];
-          snap.forEach(doc => e.push({ fireId: doc.id, ...doc.data() }));
-          e.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-          localEvents = e;
-          renderEvents();
-        }, (err) => console.error(err));
-
-        // Sync Cuan ideas
-        onSnapshot(getPublicCollectionRef('cuan'), (snap) => {
-          const c = [];
-          snap.forEach(doc => c.push({ fireId: doc.id, ...doc.data() }));
-          c.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-          localCuanIdeas = c;
-          renderCuanIdeas();
-        }, (err) => console.error(err));
-
-        // Sync Finances
-        onSnapshot(getPublicCollectionRef('transactions'), (snap) => {
-          const t = [];
-          snap.forEach(doc => t.push({ fireId: doc.id, ...doc.data() }));
-          t.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-          localTransactions = t;
-          renderFinance();
-        }, (err) => console.error(err));
-
-        // Sync Polls
-        onSnapshot(getPublicCollectionRef('polls'), (snap) => {
-          const pl = [];
-          snap.forEach(doc => pl.push({ fireId: doc.id, ...doc.data() }));
-          pl.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-          localPolls = pl;
-          renderPolls();
-        }, (err) => console.error(err));
-      }
-
-      function loadMockDatabase() {
-        localPosts = [
-          { fireId: "m1", author: "Fajar Pratama", rt: "RT 02", role: "Ketua", category: "Kegiatan", text: "Halo pemuda RW 15! Kita bakal adain mabar futsal seru besok Sabtu jam 4 sore di lapangan utama. Yang mau join, RSVP di tab AGENDA ya!", likes: 12, likedBy: [], comments: [], time: "2 jam yang lalu" }
-        ];
-        localEvents = [
-          { fireId: "e1", title: "Turnamen Mobile Legends Karta15", date: "28 Juni 2026", location: "Balai RW 15", desc: "Turnamen seru antar RT di lingkungan RW 15. Total hadiah jutaan rupiah!", attendees: 38, attendeesList: [] }
-        ];
-        localCuanIdeas = [
-          { fireId: "c1", title: "Karta Kreatif: Daur Ulang Botol Plastik", author: "Siti Rahma", rt: "RT 05", type: "Dana Kas Karta", desc: "Mengumpulkan botol plastik bekas untuk diolah menjadi pot hias bernilai jual tinggi.", upvotes: 21, upvotedBy: [], comments: [] }
-        ];
-        localTransactions = [
-          { fireId: "t1", date: "15 Jun 2026", desc: "Sponsorship Toko Sembako", type: "Masuk", amount: 500000, category: "Sponsor" }
-        ];
-        localPolls = [
-          { fireId: "p1", question: "Lomba utama apa yang paling seru buat 17 Agustusan nanti?", opt1: "Turnamen ML Antar RT", opt2: "Futsal Sarung Pasangan", votes1: 27, votes2: 15, voters: {}, totalVotes: 42 }
-        ];
-        renderAll();
-      }
-
-      // --- 5. EXPOSE EVERY INTERACTIVE ACTION TO GLOBAL WINDOW SCOPE ---
-      window.handleLogin = async function() {
-        const identifier = document.getElementById('login-identifier').value.trim();
-        const password = document.getElementById('login-password').value;
-
-        if (!identifier || !password) {
-          window.showToast("Harap isi No. WhatsApp/Nama dan Kata Sandi!");
-          return;
-        }
-
-        const user = localUsers.find(u => 
-          (u.phone === identifier || u.name.toLowerCase() === identifier.toLowerCase()) && 
-          u.password === password
-        );
-
-        if (!user) {
-          window.showToast("No. WhatsApp, Nama, atau Kata Sandi salah!");
-          return;
-        }
-
-        currentUser = user;
-
-        // Update UI Header & Menu Info
-        const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-        document.getElementById('avatar-placeholder').innerText = initials;
-        document.getElementById('menu-avatar').innerText = initials;
-        document.getElementById('menu-user-name').innerText = currentUser.name;
-        document.getElementById('menu-user-rt').innerText = `${currentUser.rt} / RW 15`;
-        document.getElementById('menu-user-role-badge').innerText = currentUser.role;
-
-        // Update Member E-Card
-        document.getElementById('card-initials').innerText = initials;
-        document.getElementById('card-name').innerText = currentUser.name;
-        document.getElementById('card-rt').innerText = `Asal: ${currentUser.rt} / RW 15`;
-        document.getElementById('card-id').innerText = `ID: ${currentUser.memberId}`;
-        document.getElementById('card-hobby').innerText = currentUser.hobby;
-        document.getElementById('card-date').innerText = currentUser.joinDate;
-
-        window.switchToScreen('app');
-        window.switchTab('feed'); 
-
-        updateRoleUIPermissions();
-        renderAll();
-        window.showToast(`Selamat datang kembali, ${currentUser.name}!`);
-      };
-
-      window.handleRegistration = async function(e) {
-        if (e) e.preventDefault();
-
-        const name = document.getElementById('reg-name').value.trim();
-        const phone = document.getElementById('reg-phone').value.trim();
-        const rt = document.getElementById('reg-rt').value;
-        const hobby = document.getElementById('reg-hobby').value.trim();
-        const password = document.getElementById('reg-password').value;
-
-        if (!name || !phone || !hobby || !password) {
-          window.showToast("Harap lengkapi semua bidang pendaftaran!");
-          return;
-        }
-
-        const isExist = localUsers.some(u => u.phone === phone);
-        if (isExist) {
-          window.showToast("Nomor WhatsApp ini sudah terdaftar!");
-          return;
-        }
-
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        const todayStr = new Date().toLocaleDateString('id-ID', options);
-        const randomIdSuffix = Math.floor(Math.random() * 900) + 100;
-        const memberId = `K15-2026-${randomIdSuffix}`;
-
-        const newUser = {
-          name: name,
-          phone: phone,
-          password: password,
-          rt: rt,
-          role: "Anggota", 
-          hobby: hobby,
-          joinDate: todayStr,
-          memberId: memberId
-        };
-
-        if (firebaseAvailable) {
-          try {
-            await setDoc(getPublicDocRef('users', phone), newUser);
-            window.showToast("Pendaftaran berhasil disimpan ke cloud database.");
-          } catch (err) {
-            localUsers.push(newUser);
-            window.showToast("Database sibuk, akun disimpan secara lokal.");
-          }
-        } else {
+          await setDoc(getPublicDocRef('users', phone), newUser);
+          window.showToast("Pendaftaran berhasil disimpan ke cloud database.");
+        } catch (err) {
           localUsers.push(newUser);
-          window.showToast("Registrasi lokal sukses!");
+          window.showToast("Database sibuk, akun disimpan secara lokal.");
         }
+      } else {
+        localUsers.push(newUser);
+        window.showToast("Registrasi lokal sukses!");
+      }
 
-        document.getElementById('register-form').reset();
-        window.switchToScreen('login');
-        document.getElementById('login-identifier').value = phone;
-        document.getElementById('login-password').value = password;
+      document.getElementById('register-form').reset();
+      window.switchToScreen('login');
+      document.getElementById('login-identifier').value = phone;
+      document.getElementById('login-password').value = password;
+    };
+
+    window.logout = function() {
+      currentUser = null;
+      document.getElementById('login-identifier').value = "";
+      document.getElementById('login-password').value = "";
+      window.switchToScreen('login');
+      window.showToast("Anda telah keluar.");
+    };
+
+    window.submitNewPost = async function() {
+      const text = document.getElementById('post-text').value.trim();
+      const mockImg = document.getElementById('post-mock-image').checked;
+
+      if (!text) {
+        window.showToast("Isi postingan tidak boleh kosong!");
+        return;
+      }
+
+      const newPost = {
+        author: currentUser.name,
+        rt: currentUser.rt,
+        role: currentUser.role,
+        category: selectedPostCategory,
+        text: text,
+        likes: 0,
+        likedBy: [],
+        comments: [],
+        timestamp: Date.now(),
+        hasImage: mockImg
       };
 
-      window.logout = function() {
-        currentUser = null;
-        document.getElementById('login-identifier').value = "";
-        document.getElementById('login-password').value = "";
-        window.switchToScreen('login');
-        window.showToast("Anda telah keluar.");
-      };
+      if (firebaseAvailable) {
+        try {
+          await addDoc(getPublicCollectionRef('posts'), newPost);
+        } catch (err) { console.error(err); }
+      } else {
+        newPost.fireId = "post-" + Date.now();
+        localPosts.unshift(newPost);
+        renderFeed();
+      }
+      window.closePostModal();
+      window.showToast("Berhasil mengirim postingan!");
+    };
 
-      window.submitNewPost = async function() {
-        const text = document.getElementById('post-text').value.trim();
-        const mockImg = document.getElementById('post-mock-image').checked;
-
-        if (!text) {
-          window.showToast("Isi postingan tidak boleh kosong!");
-          return;
-        }
-
-        const newPost = {
-          author: currentUser.name,
-          rt: currentUser.rt,
-          role: currentUser.role,
-          category: selectedPostCategory,
-          text: text,
-          likes: 0,
-          likedBy: [],
-          comments: [],
-          timestamp: Date.now(),
-          hasImage: mockImg
-        };
-
-        if (firebaseAvailable) {
-          try {
-            await addDoc(getPublicCollectionRef('posts'), newPost);
-          } catch (err) { console.error(err); }
+    window.likePost = async function(fireId) {
+      const post = localPosts.find(p => p.fireId === fireId);
+      if (post) {
+        const likedBy = post.likedBy || [];
+        const myPhone = currentUser.phone;
+        const index = likedBy.indexOf(myPhone);
+        
+        let newLikes = post.likes || 0;
+        if (index > -1) {
+          likedBy.splice(index, 1);
+          newLikes = Math.max(0, newLikes - 1);
         } else {
-          newPost.fireId = "post-" + Date.now();
-          localPosts.unshift(newPost);
-          renderFeed();
+          likedBy.push(myPhone);
+          newLikes++;
         }
-        window.closePostModal();
-        window.showToast("Berhasil mengirim postingan!");
-      };
-
-      window.likePost = async function(fireId) {
-        const post = localPosts.find(p => p.fireId === fireId);
-        if (post) {
-          const likedBy = post.likedBy || [];
-          const myPhone = currentUser.phone;
-          const index = likedBy.indexOf(myPhone);
-          
-          let newLikes = post.likes || 0;
-          if (index > -1) {
-            likedBy.splice(index, 1);
-            newLikes = Math.max(0, newLikes - 1);
-          } else {
-            likedBy.push(myPhone);
-            newLikes++;
-          }
-
-          if (firebaseAvailable) {
-            try {
-              await updateDoc(getPublicDocRef('posts', fireId), { likes: newLikes, likedBy: likedBy });
-            } catch (e) { console.error(e); }
-          } else {
-            post.likes = newLikes;
-            post.likedBy = likedBy;
-            renderFeed();
-          }
-        }
-      };
-
-      window.addComment = async function(event, fireId) {
-        if (event.key === 'Enter') {
-          const input = event.target;
-          const text = input.value.trim();
-          if (text) {
-            const post = localPosts.find(p => p.fireId === fireId);
-            if (post) {
-              const comments = post.comments || [];
-              comments.push({
-                author: `${currentUser.name} (${currentUser.rt})`,
-                text: text
-              });
-
-              if (firebaseAvailable) {
-                try {
-                  await updateDoc(getPublicDocRef('posts', fireId), { comments: comments });
-                } catch (e) { console.error(e); }
-              } else {
-                post.comments = comments;
-                renderFeed();
-              }
-              input.value = '';
-              window.showToast("Komentar ditambahkan!");
-            }
-          }
-        }
-      };
-
-      window.submitNewEvent = async function() {
-        const title = document.getElementById('event-title').value.trim();
-        const date = document.getElementById('event-date').value.trim();
-        const loc = document.getElementById('event-location').value.trim();
-        const desc = document.getElementById('event-desc').value.trim();
-
-        if (!title || !date || !loc || !desc) {
-          window.showToast("Semua data agenda wajib diisi!");
-          return;
-        }
-
-        const newEv = {
-          title: title,
-          date: date,
-          location: loc,
-          desc: desc,
-          attendees: 1,
-          attendeesList: [currentUser.phone],
-          timestamp: Date.now()
-        };
 
         if (firebaseAvailable) {
           try {
-            await addDoc(getPublicCollectionRef('events'), newEv);
+            await updateDoc(getPublicDocRef('posts', fireId), { likes: newLikes, likedBy: likedBy });
           } catch (e) { console.error(e); }
         } else {
-          newEv.fireId = "ev-" + Date.now();
-          localEvents.unshift(newEv);
+          post.likes = newLikes;
+          post.likedBy = likedBy;
+          renderFeed();
+        }
+      }
+    };
+
+    window.addComment = async function(event, fireId) {
+      if (event.key === 'Enter') {
+        const input = event.target;
+        const text = input.value.trim();
+        if (text) {
+          const post = localPosts.find(p => p.fireId === fireId);
+          if (post) {
+            const comments = post.comments || [];
+            comments.push({
+              author: `${currentUser.name} (${currentUser.rt})`,
+              text: text
+            });
+
+            if (firebaseAvailable) {
+              try {
+                await updateDoc(getPublicDocRef('posts', fireId), { comments: comments });
+              } catch (e) { console.error(e); }
+            } else {
+              post.comments = comments;
+              renderFeed();
+            }
+            input.value = '';
+            window.showToast("Komentar ditambahkan!");
+          }
+        }
+      }
+    };
+
+    window.submitNewEvent = async function() {
+      const title = document.getElementById('event-title').value.trim();
+      const date = document.getElementById('event-date').value.trim();
+      const loc = document.getElementById('event-location').value.trim();
+      const desc = document.getElementById('event-desc').value.trim();
+
+      if (!title || !date || !loc || !desc) {
+        window.showToast("Semua data agenda wajib diisi!");
+        return;
+      }
+
+      const newEv = {
+        title: title,
+        date: date,
+        location: loc,
+        desc: desc,
+        attendees: 1,
+        attendeesList: [currentUser.phone],
+        timestamp: Date.now()
+      };
+
+      if (firebaseAvailable) {
+        try {
+          await addDoc(getPublicCollectionRef('events'), newEv);
+        } catch (e) { console.error(e); }
+      } else {
+        newEv.fireId = "ev-" + Date.now();
+        localEvents.unshift(newEv);
+        renderEvents();
+      }
+      window.closeEventModal();
+      window.showToast("Agenda baru berhasil dipublikasikan!");
+    };
+
+    window.joinEvent = async function(fireId) {
+      const event = localEvents.find(e => e.fireId === fireId);
+      if (event) {
+        const list = event.attendeesList || [];
+        const myPhone = currentUser.phone;
+        const index = list.indexOf(myPhone);
+
+        let newAttendees = event.attendees || 0;
+        if (index > -1) {
+          list.splice(index, 1);
+          newAttendees = Math.max(0, newAttendees - 1);
+          window.showToast("Batal mendaftar agenda.");
+        } else {
+          list.push(myPhone);
+          newAttendees++;
+          window.showToast("Kehadiran Anda berhasil terdaftar!");
+        }
+
+        if (firebaseAvailable) {
+          try {
+            await updateDoc(getPublicDocRef('events', fireId), { attendees: newAttendees, attendeesList: list });
+          } catch (e) { console.error(e); }
+        } else {
+          event.attendees = newAttendees;
+          event.attendeesList = list;
           renderEvents();
         }
-        window.closeEventModal();
-        window.showToast("Agenda baru berhasil dipublikasikan!");
+      }
+    };
+
+    window.submitNewCuan = async function(e) {
+      if (e) e.preventDefault();
+      const title = document.getElementById('cuan-title').value.trim();
+      const type = document.getElementById('cuan-type').value;
+      const desc = document.getElementById('cuan-desc').value.trim();
+
+      if (!title || !desc) {
+        window.showToast("Mohon isi judul dan rincian ide cuan!");
+        return;
+      }
+
+      const newIdea = {
+        title: title,
+        author: currentUser.name,
+        rt: currentUser.rt,
+        type: type,
+        desc: desc,
+        upvotes: 1,
+        upvotedBy: [currentUser.phone],
+        comments: [],
+        timestamp: Date.now()
       };
 
-      window.joinEvent = async function(fireId) {
-        const event = localEvents.find(e => e.fireId === fireId);
-        if (event) {
-          const list = event.attendeesList || [];
-          const myPhone = currentUser.phone;
-          const index = list.indexOf(myPhone);
+      if (firebaseAvailable) {
+        try {
+          await addDoc(getPublicCollectionRef('cuan'), newIdea);
+        } catch (err) { console.error(err); }
+      } else {
+        newIdea.fireId = "cuan-" + Date.now();
+        localCuanIdeas.unshift(newIdea);
+        renderCuanIdeas();
+      }
+      window.closeCuanModal();
+      window.showToast("Ide cuan berhasil dibagikan!");
+    };
 
-          let newAttendees = event.attendees || 0;
-          if (index > -1) {
-            list.splice(index, 1);
-            newAttendees = Math.max(0, newAttendees - 1);
-            window.showToast("Batal mendaftar agenda.");
-          } else {
-            list.push(myPhone);
-            newAttendees++;
-            window.showToast("Kehadiran Anda berhasil terdaftar!");
-          }
+    window.upvoteCuan = async function(fireId) {
+      const idea = localCuanIdeas.find(i => i.fireId === fireId);
+      if (idea) {
+        const list = idea.upvotedBy || [];
+        const myPhone = currentUser.phone;
+        const index = list.indexOf(myPhone);
 
-          if (firebaseAvailable) {
-            try {
-              await updateDoc(getPublicDocRef('events', fireId), { attendees: newAttendees, attendeesList: list });
-            } catch (e) { console.error(e); }
-          } else {
-            event.attendees = newAttendees;
-            event.attendeesList = list;
-            renderEvents();
-          }
+        let votes = idea.upvotes || 0;
+        if (index > -1) {
+          list.splice(index, 1);
+          votes = Math.max(0, votes - 1);
+        } else {
+          list.push(myPhone);
+          votes++;
         }
-      };
-
-      window.submitNewCuan = async function(e) {
-        if (e) e.preventDefault();
-        const title = document.getElementById('cuan-title').value.trim();
-        const type = document.getElementById('cuan-type').value;
-        const desc = document.getElementById('cuan-desc').value.trim();
-
-        if (!title || !desc) {
-          window.showToast("Mohon isi judul dan rincian ide cuan!");
-          return;
-        }
-
-        const newIdea = {
-          title: title,
-          author: currentUser.name,
-          rt: currentUser.rt,
-          type: type,
-          desc: desc,
-          upvotes: 1,
-          upvotedBy: [currentUser.phone],
-          comments: [],
-          timestamp: Date.now()
-        };
 
         if (firebaseAvailable) {
           try {
-            await addDoc(getPublicCollectionRef('cuan'), newIdea);
-          } catch (err) { console.error(err); }
+            await updateDoc(getPublicDocRef('cuan', fireId), { upvotes: votes, upvotedBy: list });
+          } catch (e) { console.error(e); }
         } else {
-          newIdea.fireId = "cuan-" + Date.now();
-          localCuanIdeas.unshift(newIdea);
+          idea.upvotes = votes;
+          idea.upvotedBy = list;
           renderCuanIdeas();
         }
-        window.closeCuanModal();
-        window.showToast("Ide cuan berhasil dibagikan!");
-      };
+      }
+    };
 
-      window.upvoteCuan = async function(fireId) {
-        const idea = localCuanIdeas.find(i => i.fireId === fireId);
-        if (idea) {
-          const list = idea.upvotedBy || [];
-          const myPhone = currentUser.phone;
-          const index = list.indexOf(myPhone);
+    window.addCuanComment = async function(event, fireId) {
+      if (event.key === 'Enter') {
+        const input = event.target;
+        const text = input.value.trim();
+        if (text) {
+          const idea = localCuanIdeas.find(i => i.fireId === fireId);
+          if (idea) {
+            const comments = idea.comments || [];
+            comments.push({
+              author: `${currentUser.name} (${currentUser.rt})`,
+              text: text
+            });
 
-          let votes = idea.upvotes || 0;
-          if (index > -1) {
-            list.splice(index, 1);
-            votes = Math.max(0, votes - 1);
-          } else {
-            list.push(myPhone);
-            votes++;
-          }
-
-          if (firebaseAvailable) {
-            try {
-              await updateDoc(getPublicDocRef('cuan', fireId), { upvotes: votes, upvotedBy: list });
-            } catch (e) { console.error(e); }
-          } else {
-            idea.upvotes = votes;
-            idea.upvotedBy = list;
-            renderCuanIdeas();
-          }
-        }
-      };
-
-      window.addCuanComment = async function(event, fireId) {
-        if (event.key === 'Enter') {
-          const input = event.target;
-          const text = input.value.trim();
-          if (text) {
-            const idea = localCuanIdeas.find(i => i.fireId === fireId);
-            if (idea) {
-              const comments = idea.comments || [];
-              comments.push({
-                author: `${currentUser.name} (${currentUser.rt})`,
-                text: text
-              });
-
-              if (firebaseAvailable) {
-                try {
-                  await updateDoc(getPublicDocRef('cuan', fireId), { comments: comments });
-                } catch (e) { console.error(e); }
-              } else {
-                idea.comments = comments;
-                renderCuanIdeas();
-              }
-              input.value = '';
-              window.showToast("Tanggapan berhasil disimpan!");
+            if (firebaseAvailable) {
+              try {
+                await updateDoc(getPublicDocRef('cuan', fireId), { comments: comments });
+              } catch (e) { console.error(e); }
+            } else {
+              idea.comments = comments;
+              renderCuanIdeas();
             }
+            input.value = '';
+            window.showToast("Tanggapan berhasil disimpan!");
           }
         }
+      }
+    };
+
+    window.submitNewTransaction = async function(e) {
+      if (e) e.preventDefault();
+      const type = document.getElementById('trans-type').value;
+      const category = document.getElementById('trans-category').value;
+      const desc = document.getElementById('trans-desc').value.trim();
+      const amount = parseInt(document.getElementById('trans-amount').value);
+
+      if (!desc || isNaN(amount) || amount <= 0) {
+        window.showToast("Data transaksi kas tidak valid!");
+        return;
+      }
+
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      const dateStr = new Date().toLocaleDateString('id-ID', options);
+
+      const newTrans = {
+        date: dateStr,
+        desc: desc,
+        type: type,
+        amount: amount,
+        category: category,
+        timestamp: Date.now()
       };
 
-      window.submitNewTransaction = async function(e) {
-        if (e) e.preventDefault();
-        const type = document.getElementById('trans-type').value;
-        const category = document.getElementById('trans-category').value;
-        const desc = document.getElementById('trans-desc').value.trim();
-        const amount = parseInt(document.getElementById('trans-amount').value);
+      if (firebaseAvailable) {
+        try {
+          await addDoc(getPublicCollectionRef('transactions'), newTrans);
+        } catch (err) { console.error(err); }
+      } else {
+        newTrans.fireId = "trans-" + Date.now();
+        localTransactions.unshift(newTrans);
+        renderFinance();
+      }
+      window.closeTransactionModal();
+      window.showToast("Kas sukses dicatat!");
+    };
 
-        if (!desc || isNaN(amount) || amount <= 0) {
-          window.showToast("Data transaksi kas tidak valid!");
+    window.submitNewPoll = async function() {
+      const q = document.getElementById('poll-question').value.trim();
+      const o1 = document.getElementById('poll-opt1').value.trim();
+      const o2 = document.getElementById('poll-opt2').value.trim();
+
+      if (!q || !o1 || !o2) {
+        window.showToast("Harap isi pertanyaan & semua opsi!");
+        return;
+      }
+
+      const newPoll = {
+        question: q,
+        opt1: o1,
+        opt2: o2,
+        votes1: 0,
+        votes2: 0,
+        voters: {}, 
+        totalVotes: 0,
+        timestamp: Date.now()
+      };
+
+      if (firebaseAvailable) {
+        try {
+          await addDoc(getPublicCollectionRef('polls'), newPoll);
+        } catch (err) { console.error(err); }
+      } else {
+        newPoll.fireId = "poll-" + Date.now();
+        localPolls.unshift(newPoll);
+        renderPolls();
+      }
+      window.closePollModal();
+      window.showToast("Polling berhasil diluncurkan!");
+    };
+
+    window.votePoll = async function(fireId, option) {
+      const poll = localPolls.find(p => p.fireId === fireId);
+      if (poll) {
+        const voters = poll.voters || {};
+        const myPhone = currentUser.phone;
+
+        if (voters[myPhone]) {
+          window.showToast("Anda sudah memberikan pilihan!");
           return;
         }
 
-        const options = { day: 'numeric', month: 'short', year: 'numeric' };
-        const dateStr = new Date().toLocaleDateString('id-ID', options);
+        voters[myPhone] = option;
+        
+        let v1 = poll.votes1 || 0;
+        let v2 = poll.votes2 || 0;
+        if (option === 'opt1') v1++;
+        else v2++;
 
-        const newTrans = {
-          date: dateStr,
-          desc: desc,
-          type: type,
-          amount: amount,
-          category: category,
-          timestamp: Date.now()
-        };
+        const total = v1 + v2;
 
         if (firebaseAvailable) {
           try {
-            await addDoc(getPublicCollectionRef('transactions'), newTrans);
-          } catch (err) { console.error(err); }
+            await updateDoc(getPublicDocRef('polls', fireId), { voters: voters, votes1: v1, votes2: v2, totalVotes: total });
+          } catch (e) { console.error(e); }
         } else {
-          newTrans.fireId = "trans-" + Date.now();
-          localTransactions.unshift(newTrans);
-          renderFinance();
-        }
-        window.closeTransactionModal();
-        window.showToast("Kas sukses dicatat!");
-      };
-
-      window.submitNewPoll = async function() {
-        const q = document.getElementById('poll-question').value.trim();
-        const o1 = document.getElementById('poll-opt1').value.trim();
-        const o2 = document.getElementById('poll-opt2').value.trim();
-
-        if (!q || !o1 || !o2) {
-          window.showToast("Harap isi pertanyaan & semua opsi!");
-          return;
-        }
-
-        const newPoll = {
-          question: q,
-          opt1: o1,
-          opt2: o2,
-          votes1: 0,
-          votes2: 0,
-          voters: {}, 
-          totalVotes: 0,
-          timestamp: Date.now()
-        };
-
-        if (firebaseAvailable) {
-          try {
-            await addDoc(getPublicCollectionRef('polls'), newPoll);
-          } catch (err) { console.error(err); }
-        } else {
-          newPoll.fireId = "poll-" + Date.now();
-          localPolls.unshift(newPoll);
+          poll.voters = voters;
+          poll.votes1 = v1;
+          poll.votes2 = v2;
+          poll.totalVotes = total;
           renderPolls();
         }
-        window.closePollModal();
-        window.showToast("Polling berhasil diluncurkan!");
-      };
+        window.showToast("Voting aspirasi direkam!");
+      }
+    };
 
-      window.votePoll = async function(fireId, option) {
-        const poll = localPolls.find(p => p.fireId === fireId);
-        if (poll) {
-          const voters = poll.voters || {};
-          const myPhone = currentUser.phone;
+    window.changeUserRoleByKetua = async function(phone, newRole) {
+      if (!currentUser || currentUser.role !== 'Ketua') return;
 
-          if (voters[myPhone]) {
-            window.showToast("Anda sudah memberikan pilihan!");
-            return;
-          }
+      if (firebaseAvailable) {
+        try {
+          await updateDoc(getPublicDocRef('users', phone), { role: newRole });
+        } catch (err) { console.error(err); }
+      } else {
+        const user = localUsers.find(u => u.phone === phone);
+        if (user) {
+          user.role = newRole;
+          if (currentUser.phone === phone) currentUser.role = newRole;
+          updateRoleUIPermissions();
+          renderMemberManagement();
+        }
+      }
+      window.showToast("Jabatan sukses diperbarui!");
+    };
 
-          voters[myPhone] = option;
-          
-          let v1 = poll.votes1 || 0;
-          let v2 = poll.votes2 || 0;
-          if (option === 'opt1') v1++;
-          else v2++;
-
-          const total = v1 + v2;
-
-          if (firebaseAvailable) {
-            try {
-              await updateDoc(getPublicDocRef('polls', fireId), { voters: voters, votes1: v1, votes2: v2, totalVotes: total });
-            } catch (e) { console.error(e); }
+    window.selectPostCategory = function(category) {
+      selectedPostCategory = category;
+      const tags = ['Umum', 'Kegiatan', 'Mabar'];
+      tags.forEach(t => {
+        const btn = document.getElementById(`tag-${t}`);
+        if (btn) {
+          if (t === category) {
+            btn.className = "py-1.5 px-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:opacity-90";
           } else {
-            poll.voters = voters;
-            poll.votes1 = v1;
-            poll.votes2 = v2;
-            poll.totalVotes = total;
-            renderPolls();
-          }
-          window.showToast("Voting aspirasi direkam!");
-        }
-      };
-
-      window.changeUserRoleByKetua = async function(phone, newRole) {
-        if (!currentUser || currentUser.role !== 'Ketua') return;
-
-        if (firebaseAvailable) {
-          try {
-            await updateDoc(getPublicDocRef('users', phone), { role: newRole });
-          } catch (err) { console.error(err); }
-        } else {
-          const user = localUsers.find(u => u.phone === phone);
-          if (user) {
-            user.role = newRole;
-            if (currentUser.phone === phone) currentUser.role = newRole;
-            updateRoleUIPermissions();
-            renderMemberManagement();
+            btn.className = "py-1.5 px-2 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold hover:bg-slate-700";
           }
         }
-        window.showToast("Jabatan sukses diperbarui!");
-      };
+      });
+    };
 
-      window.selectPostCategory = function(category) {
-        selectedPostCategory = category;
-        const tags = ['Umum', 'Kegiatan', 'Mabar'];
-        tags.forEach(t => {
-          const btn = document.getElementById(`tag-${t}`);
-          if (btn) {
-            if (t === category) {
-              btn.className = "py-1.5 px-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:opacity-90";
-            } else {
-              btn.className = "py-1.5 px-2 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold hover:bg-slate-700";
-            }
-          }
-        });
-      };
+    // --- CORE APP RENDERERS ---
+    function renderFeed() {
+      const list = document.getElementById('feed-list');
+      if (!list) return;
+      list.innerHTML = "";
 
-      // --- 6. CORE APP RENDERERS ---
-      function renderFeed() {
-        const list = document.getElementById('feed-list');
-        if (!list) return;
-        list.innerHTML = "";
+      localPosts.forEach(post => {
+        let tagColor = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+        if (post.category === "Kegiatan") tagColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+        if (post.category === "Mabar") tagColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
 
-        localPosts.forEach(post => {
-          let tagColor = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
-          if (post.category === "Kegiatan") tagColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-          if (post.category === "Mabar") tagColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+        let roleBadgeColor = "bg-slate-800 text-slate-400";
+        if (post.role === "Ketua") roleBadgeColor = "bg-red-500/20 text-red-300 border border-red-500/30";
+        else if (post.role === "Wakil Ketua") roleBadgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+        else if (post.role === "Bendahara") roleBadgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        else if (post.role === "Pengurus") roleBadgeColor = "bg-indigo-500/20 text-indigo-300";
 
-          let roleBadgeColor = "bg-slate-800 text-slate-400";
-          if (post.role === "Ketua") roleBadgeColor = "bg-red-500/20 text-red-300 border border-red-500/30";
-          else if (post.role === "Wakil Ketua") roleBadgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
-          else if (post.role === "Bendahara") roleBadgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
-          else if (post.role === "Pengurus") roleBadgeColor = "bg-indigo-500/20 text-indigo-300";
+        const roleBadge = `<span class="${roleBadgeColor} text-[8px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wide">${post.role}</span>`;
 
-          const roleBadge = `<span class="${roleBadgeColor} text-[8px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wide">${post.role}</span>`;
+        const imgMockup = post.hasImage 
+          ? `<div class="mt-3 rounded-xl overflow-hidden h-32 bg-gradient-to-r from-slate-800 to-indigo-950 flex items-center justify-center text-xs text-indigo-400 border border-slate-800/80">
+               <i class="fa-solid fa-images text-xl mr-2 text-indigo-500"></i> Media Terlampir (#KARTAR 15)
+             </div>`
+          : "";
 
-          const imgMockup = post.hasImage 
-            ? `<div class="mt-3 rounded-xl overflow-hidden h-32 bg-gradient-to-r from-slate-800 to-indigo-950 flex items-center justify-center text-xs text-indigo-400 border border-slate-800/80">
-                 <i class="fa-solid fa-images text-xl mr-2 text-indigo-500"></i> Media Terlampir (#KARTAR 15)
-               </div>`
-            : "";
-
-          let commentsHTML = "";
-          const comments = post.comments || [];
-          if (comments.length > 0) {
-            commentsHTML = `
-              <div class="mt-3 pt-3 border-t border-slate-800/50 space-y-2">
-                ${comments.map(c => `
-                  <div class="text-[11px] bg-slate-950/60 p-2 rounded-lg">
-                    <span class="font-bold text-indigo-400">${c.author}</span>
-                    <p class="text-slate-300 mt-0.5">${c.text}</p>
-                  </div>
-                `).join('')}
-              </div>
-            `;
-          }
-
-          const isLiked = currentUser && post.likedBy && post.likedBy.includes(currentUser.phone);
-
-          const card = document.createElement('div');
-          card.className = "bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-md";
-          card.innerHTML = `
-            <div class="flex items-center justify-between mb-2.5">
-              <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 bg-slate-800 text-white rounded-full flex items-center justify-center text-xs font-bold font-sans">
-                  ${post.author.charAt(0)}
+        let commentsHTML = "";
+        const comments = post.comments || [];
+        if (comments.length > 0) {
+          commentsHTML = `
+            <div class="mt-3 pt-3 border-t border-slate-800/50 space-y-2">
+              ${comments.map(c => `
+                <div class="text-[11px] bg-slate-950/60 p-2 rounded-lg">
+                  <span class="font-bold text-indigo-400">${c.author}</span>
+                  <p class="text-slate-300 mt-0.5">${c.text}</p>
                 </div>
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-xs font-bold text-white leading-none">${post.author}</span>
-                    <span class="text-[10px] text-indigo-400 font-semibold bg-indigo-950 px-1 py-0.2 rounded">${post.rt}</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 mt-1">
-                    ${roleBadge}
-                    <span class="text-[9px] text-slate-500">${post.time || 'Baru saja'}</span>
-                  </div>
-                </div>
-              </div>
-              <span class="border text-[9px] font-bold px-2 py-0.5 rounded-full ${tagColor}">#${post.category}</span>
-            </div>
-
-            <p class="text-xs text-slate-200 leading-relaxed">${post.text}</p>
-            ${imgMockup}
-
-            <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800/80 text-xs text-slate-400">
-              <button onclick="window.likePost('${post.fireId}')" class="flex items-center gap-1.5 hover:text-indigo-400 ${isLiked ? 'text-indigo-400 font-semibold' : ''} transition-colors">
-                <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i> <span>${post.likes || 0}</span>
-              </button>
-              <div class="flex items-center gap-1">
-                <i class="fa-regular fa-comment text-sm"></i> <span>${comments.length} Komentar</span>
-              </div>
-            </div>
-
-            ${commentsHTML}
-
-            <div class="mt-2.5 flex items-center gap-2">
-              <input type="text" onkeypress="window.addComment(event, '${post.fireId}')" placeholder="Tulis komentar... (Tekan Enter)" class="w-full bg-slate-950 border border-slate-800/50 rounded-lg px-3 py-1.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              `).join('')}
             </div>
           `;
+        }
 
-          list.appendChild(card);
-        });
-      }
+        const isLiked = currentUser && post.likedBy && post.likedBy.includes(currentUser.phone);
 
-      function renderEvents() {
-        const list = document.getElementById('event-list');
-        if (!list) return;
-        list.innerHTML = "";
-
-        localEvents.forEach(ev => {
-          const isAttending = currentUser && ev.attendeesList && ev.attendeesList.includes(currentUser.phone);
-          const joinBtnClass = isAttending 
-            ? "bg-slate-800 border border-indigo-500/50 text-indigo-400" 
-            : "bg-indigo-600 hover:bg-indigo-500 text-white";
-
-          const joinBtnText = isAttending ? "Kamu Ikutan! ✓" : "Ikutan Kuy!";
-
-          const card = document.createElement('div');
-          card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md relative overflow-hidden";
-          card.innerHTML = `
-            <div class="absolute right-0 top-0 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-indigo-500/10">
-              KARTAR EVENT
-            </div>
-            <h3 class="text-md font-bold text-white max-w-[80%]">${ev.title}</h3>
-            
-            <div class="space-y-1.5 my-3 text-xs text-slate-300">
-              <div class="flex items-center gap-2"><i class="fa-regular fa-calendar text-indigo-400 w-4"></i> <span>${ev.date}</span></div>
-              <div class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-rose-400 w-4"></i> <span>${ev.location}</span></div>
-            </div>
-
-            <p class="text-xs text-slate-400 leading-relaxed mb-4">${ev.desc}</p>
-
-            <div class="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
-              <span class="text-xs text-slate-400 font-medium">
-                <i class="fa-solid fa-users text-indigo-400 mr-1"></i> <b class="text-white">${ev.attendees || 0}</b> pemuda bergabung
-              </span>
-              <button onclick="window.joinEvent('${ev.fireId}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${joinBtnClass}">
-                ${joinBtnText}
-              </button>
-            </div>
-          `;
-          list.appendChild(card);
-        });
-      }
-
-      function renderCuanIdeas() {
-        const list = document.getElementById('cuan-list');
-        if (!list) return;
-        list.innerHTML = "";
-
-        localCuanIdeas.forEach(idea => {
-          let tagColor = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
-          if (idea.type === "Dana Kas Karta") tagColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
-
-          let commentsHTML = "";
-          const comments = idea.comments || [];
-          if (comments.length > 0) {
-            commentsHTML = `
-              <div class="mt-3 pt-3 border-t border-slate-800/40 space-y-2">
-                ${comments.map(c => `
-                  <div class="text-[11px] bg-slate-950 p-2 rounded-lg">
-                    <span class="font-bold text-indigo-400">${c.author}</span>
-                    <p class="text-slate-300 mt-0.5">${c.text}</p>
-                  </div>
-                `).join('')}
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-md";
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 bg-slate-800 text-white rounded-full flex items-center justify-center text-xs font-bold font-sans">
+                ${post.author.charAt(0)}
               </div>
-            `;
-          }
-
-          const isUpvoted = currentUser && idea.upvotedBy && idea.upvotedBy.includes(currentUser.phone);
-
-          const card = document.createElement('div');
-          card.className = "bg-slate-900 border border-slate-800/80 p-4 rounded-2xl shadow-md space-y-3";
-          card.innerHTML = `
-            <div class="flex justify-between items-start">
               <div>
-                <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${tagColor}">Target: ${idea.type}</span>
-                <h3 class="text-sm font-bold text-white mt-2">${idea.title}</h3>
-                <p class="text-[10px] text-slate-400 mt-0.5">Oleh: <span class="text-slate-300 font-semibold">${idea.author} (${idea.rt})</span></p>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-bold text-white leading-none">${post.author}</span>
+                  <span class="text-[10px] text-indigo-400 font-semibold bg-indigo-950 px-1 py-0.2 rounded">${post.rt}</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-1">
+                  ${roleBadge}
+                  <span class="text-[9px] text-slate-500">${post.time || 'Baru saja'}</span>
+                </div>
               </div>
-              
-              <button onclick="window.upvoteCuan('${idea.fireId}')" class="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-indigo-500/50 text-xs ${isUpvoted ? 'text-indigo-400 font-bold border-indigo-500/50' : 'text-slate-500'}">
-                <i class="fa-solid fa-circle-chevron-up text-md"></i>
-                <span class="mt-1">${idea.upvotes || 0}</span>
-              </button>
             </div>
+            <span class="border text-[9px] font-bold px-2 py-0.5 rounded-full ${tagColor}">#${post.category}</span>
+          </div>
+
+          <p class="text-xs text-slate-200 leading-relaxed">${post.text}</p>
+          ${imgMockup}
+
+          <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800/80 text-xs text-slate-400">
+            <button onclick="window.likePost('${post.fireId}')" class="flex items-center gap-1.5 hover:text-indigo-400 ${isLiked ? 'text-indigo-400 font-semibold' : ''} transition-colors">
+              <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i> <span>${post.likes || 0}</span>
+            </button>
+            <div class="flex items-center gap-1">
+              <i class="fa-regular fa-comment text-sm"></i> <span>${comments.length} Komentar</span>
+            </div>
+          </div>
+
+          ${commentsHTML}
+
+          <div class="mt-2.5 flex items-center gap-2">
+            <input type="text" onkeypress="window.addComment(event, '${post.fireId}')" placeholder="Tulis komentar... (Tekan Enter)" class="w-full bg-slate-950 border border-slate-800/50 rounded-lg px-3 py-1.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+          </div>
+        `;
+
+        list.appendChild(card);
+      });
+    }
+
+    function renderEvents() {
+      const list = document.getElementById('event-list');
+      if (!list) return;
+      list.innerHTML = "";
+
+      localEvents.forEach(ev => {
+        const isAttending = currentUser && ev.attendeesList && ev.attendeesList.includes(currentUser.phone);
+        const joinBtnClass = isAttending 
+          ? "bg-slate-800 border border-indigo-500/50 text-indigo-400" 
+          : "bg-indigo-600 hover:bg-indigo-500 text-white";
+
+        const joinBtnText = isAttending ? "Kamu Ikutan! ✓" : "Ikutan Kuy!";
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md relative overflow-hidden";
+        card.innerHTML = `
+          <div class="absolute right-0 top-0 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-indigo-500/10">
+            KARTAR EVENT
+          </div>
+          <h3 class="text-md font-bold text-white max-w-[80%]">${ev.title}</h3>
+          
+          <div class="space-y-1.5 my-3 text-xs text-slate-300">
+            <div class="flex items-center gap-2"><i class="fa-regular fa-calendar text-indigo-400 w-4"></i> <span>${ev.date}</span></div>
+            <div class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-rose-400 w-4"></i> <span>${ev.location}</span></div>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">${ev.desc}</p>
+
+          <div class="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
+            <span class="text-xs text-slate-400 font-medium">
+              <i class="fa-solid fa-users text-indigo-400 mr-1"></i> <b class="text-white">${ev.attendees || 0}</b> pemuda bergabung
+            </span>
+            <button onclick="window.joinEvent('${ev.fireId}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${joinBtnClass}">
+              ${joinBtnText}
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function renderCuanIdeas() {
+      const list = document.getElementById('cuan-list');
+      if (!list) return;
+      list.innerHTML = "";
+
+      localCuanIdeas.forEach(idea => {
+        let tagColor = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+        if (idea.type === "Dana Kas Karta") tagColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+
+        let commentsHTML = "";
+        const comments = idea.comments || [];
+        if (comments.length > 0) {
+          commentsHTML = `
+            <div class="mt-3 pt-3 border-t border-slate-800/40 space-y-2">
+              ${comments.map(c => `
+                <div class="text-[11px] bg-slate-950 p-2 rounded-lg">
+                  <span class="font-bold text-indigo-400">${c.author}</span>
+                  <p class="text-slate-300 mt-0.5">${c.text}</p>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        const isUpvoted = currentUser && idea.upvotedBy && idea.upvotedBy.includes(currentUser.phone);
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800/80 p-4 rounded-2xl shadow-md space-y-3";
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${tagColor}">Target: ${idea.type}</span>
+              <h3 class="text-sm font-bold text-white mt-2">${idea.title}</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5">Oleh: <span class="text-slate-300 font-semibold">${idea.author} (${idea.rt})</span></p>
+            </div>
+            
+            <button onclick="window.upvoteCuan('${idea.fireId}')" class="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-indigo-500/50 text-xs ${isUpvoted ? 'text-indigo-400 font-bold border-indigo-500/50' : 'text-slate-500'}">
+              <i class="fa-solid fa-circle-chevron-up text-md"></i>
+              <span class="mt-1">${idea.upvotes || 0}</span>
+            </button>
+          </div>
 
           <p class="text-xs text-slate-300 leading-relaxed font-sans">${idea.desc}</p>
 
@@ -1928,7 +1878,7 @@
       }
     }
 
-    // --- FITUR RAHSIA UNTUK SIMPAN CONFIG FIREBASE SECARA LOKAL ---
+    // --- FITUR PRIVAT UNTUK CONFIG MANUAL FIREBASE ---
     window.saveFirebaseConfig = function() {
       const configStr = document.getElementById('firebase-config-textarea').value.trim();
       try {
@@ -1951,7 +1901,6 @@
       setTimeout(() => { window.location.reload(); }, 1500);
     };
 
-    // Attach all handlers explicitly to window
     window.renderMenuSubTabContents = function() {
       const ukmList = [
         { id: 1, title: "Kopi Tetangga RT 03", desc: "Es kopi susu kekinian spesial biji kopi lokal asli. Diskon 15% khusus warga RW 15!", contact: "628123456789", icon: "fa-mug-hot" },
@@ -2003,12 +1952,12 @@
       }
     };
 
-    // Jalankan sistem asinkronis
-    initializeSystem();
+    // Jalankan inisialisasi aman tanpa mengunci alur rendering browser
+    runSetup();
   </script>
 
   <script>
-    // --- 7. INDEPENDENT GENERAL UI LOGIC ---
+    // --- INDEPENDENT GENERAL UI LOGIC ---
     function handleLogoError() {
       document.getElementById('app-logo-img').classList.add('hidden');
       document.getElementById('logo-fallback').classList.remove('hidden');
