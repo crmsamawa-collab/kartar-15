@@ -1,0 +1,1827 @@
+html
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KARTA15 - Karang Taruna RW 15 Pondok Kelapa</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts (Plus Jakarta Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDK Modules -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- SINKRONISASI KONFIGURASI AMAN (VERCEL ENV & CANVAS RUNTIME) ---
+    // Di Vercel, nilai ini akan digantikan secara dinamis lewat Environment Variables yang Anda pasang.
+    // Jika tidak terdeteksi, sistem akan mencoba membaca dari Canvas fallback (__firebase_config).
+    const firebaseConfig = {
+      apiKey: "INSERT_VERCEL_API_KEY",
+      authDomain: "INSERT_VERCEL_AUTH_DOMAIN",
+      projectId: "INSERT_VERCEL_PROJECT_ID",
+      storageBucket: "INSERT_VERCEL_STORAGE_BUCKET",
+      messagingSenderId: "INSERT_VERCEL_MESSAGING_SENDER_ID",
+      appId: "INSERT_VERCEL_APP_ID"
+    };
+
+    // Deteksi jika berjalan di Vercel (Placeholder diganti) atau di Canvas
+    const isVotedOnVercel = firebaseConfig.apiKey !== "INSERT_VERCEL_API_KEY" && firebaseConfig.apiKey !== "";
+    
+    let finalConfig = firebaseConfig;
+
+    if (!isVotedOnVercel && typeof __firebase_config !== 'undefined') {
+      finalConfig = JSON.parse(__firebase_config);
+    }
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'kartar15-rw15-production';
+
+    // Inisialisasi Firebase secara aman
+    const app = initializeApp(finalConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Ekspor ke window global agar script interaksi dapat membaca database
+    window.db = db;
+    window.auth = auth;
+    window.appId = appId;
+    window.firestoreInited = true;
+    
+    // Autentikasi otomatis sebelum query (Rule 3)
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        console.error("Autentikasi Firebase gagal:", err);
+      }
+    };
+    initAuth();
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="h-full flex justify-center items-center overflow-hidden bg-slate-900">
+
+  <!-- Mobile Wrapper Simulation for Desktop, Fullscreen on Mobile -->
+  <div class="w-full max-w-md h-full md:h-[850px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300">
+    
+    <!-- ==================== SCREEN 1: LOGIN ==================== -->
+    <div id="login-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
+      <div class="flex flex-col items-center justify-center flex-grow py-4">
+        
+        <!-- Logo Baru dari Gambar 1000146609.png -->
+        <div id="logo-container" class="relative mb-3 flex items-center justify-center">
+          <img id="app-logo-img" src="1000146609.png" onerror="handleLogoError()" class="w-24 h-24 object-contain rounded-full border border-slate-700 bg-white/5 p-1 shadow-xl shadow-indigo-500/10" alt="Logo Karang Taruna RW 15 Pondok Kelapa">
+          <!-- Fallback icon jika file gambar belum diupload di repositori github -->
+          <div id="logo-fallback" class="hidden w-24 h-24 bg-gradient-to-tr from-indigo-600 to-rose-500 rounded-full items-center justify-center text-white border border-indigo-400">
+            <i class="fa-solid fa-people-group text-3xl"></i>
+          </div>
+        </div>
+
+        <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-rose-400 bg-clip-text text-transparent">KARTAR 15</h1>
+        <p class="text-slate-400 text-xs mt-1 text-center font-medium">Karang Taruna RW 15 Pondok Kelapa</p>
+
+        <!-- ==================== PROMOTIONAL BANNER ==================== -->
+        <div class="w-full mt-5 bg-gradient-to-tr from-indigo-900 via-purple-900 to-rose-900 rounded-2xl p-5 border border-indigo-500/20 shadow-xl relative overflow-hidden">
+          <div class="absolute -right-10 -top-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl"></div>
+          
+          <span class="bg-rose-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">REKRUTMEN ANGGOTA BARU</span>
+          <h2 class="text-xl font-black text-white mt-2 leading-tight">JANGAN CUMA JADI PENONTON!</h2>
+          <p class="text-[11px] text-slate-200 mt-1.5 leading-relaxed">Saatnya bersuara, berkarya, dan seru-seruan bareng pemuda RW 15 di Karang Taruna KARTAR 15!</p>
+          
+          <!-- Benefit Badges Grid -->
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Anti Gabut & Seru</span>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Relasi & Koneksi</span>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Support Usaha Lokal</span>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Pengaruh Nyata</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GARANSI BEBAS OSPEK CARD -->
+        <div class="w-full mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-start gap-3 shadow-md">
+          <div class="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl flex items-center justify-center">
+            <i class="fa-solid fa-hand-holding-heart text-md"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-white">Garansi Tanpa Ribet & Bebas Ospek</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5 leading-relaxed">Murni tempat kita berkembang bersama. Gak ada senioritas, gak ada tekanan birokrasi kaku. Semua punya hak bersuara yang sama!</p>
+          </div>
+        </div>
+
+        <!-- Form Card (Login Menu) -->
+        <div class="w-full mt-4 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-800 shadow-xl">
+          <h2 class="text-md font-bold text-white mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-right-to-bracket text-indigo-400"></i> Masuk Aplikasi
+          </h2>
+          
+          <!-- Username / Phone Input -->
+          <div class="mb-3">
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">No. WhatsApp / Nama Pengguna</label>
+            <input type="text" id="login-identifier" placeholder="Contoh: 082111111111 atau Fajar" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white transition-all">
+          </div>
+
+          <!-- Password Input -->
+          <div class="mb-4 relative">
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Kata Sandi</label>
+              <span class="text-[10px] text-indigo-400 cursor-pointer hover:underline" onclick="showToast('Sandi bawaan akun uji coba adalah: 123456')">Info Sandi</span>
+            </div>
+            <div class="relative">
+              <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white transition-all">
+              <button onclick="togglePasswordVisibility('login-password', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                <i class="fa-solid fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Login Button -->
+          <button id="btn-login-submit" onclick="handleLogin()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition-all transform active:scale-95">
+            Masuk <i class="fa-solid fa-arrow-right-to-bracket ml-1.5"></i>
+          </button>
+        </div>
+
+        <!-- Go To Register Card -->
+        <div class="w-full mt-4 bg-slate-900/40 p-4 rounded-xl border border-dashed border-slate-800 text-center">
+          <p class="text-xs text-slate-400">Belum terdaftar sebagai anggota RW 15?</p>
+          <button onclick="switchToScreen('register')" class="mt-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
+            Buat Akun Anggota Baru <i class="fa-solid fa-user-plus ml-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Test Accounts Info for convenience -->
+      <div class="bg-indigo-950/30 border border-indigo-500/10 p-3 rounded-xl mb-4">
+        <p class="text-[10px] text-indigo-300 font-bold mb-1.5 text-center"><i class="fa-solid fa-circle-info"></i> Akun Demo bawaan (Tersinkron):</p>
+        <div class="grid grid-cols-2 gap-2 text-[9px] text-slate-400">
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-red-400">Ketua (Admin):</span><br>
+            WA: <span class="text-slate-200">082111111111</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-purple-400">Wakil Ketua:</span><br>
+            WA: <span class="text-slate-200">082444444444</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-amber-400">Bendahara (Kas):</span><br>
+            WA: <span class="text-slate-200">082333333333</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-emerald-400">Anggota Biasa:</span><br>
+            WA: <span class="text-slate-200">082222222222</span>
+          </div>
+        </div>
+        <p class="text-[8px] text-slate-500 mt-1.5 text-center font-semibold">Sandi semua akun uji coba: <span class="text-slate-300">123456</span></p>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="text-center">
+        <p class="text-[10px] text-slate-500">Muda, Kreatif, Berdampak. © 2026 KARTAR 15</p>
+      </div>
+    </div>
+
+
+    <!-- ==================== SCREEN 2: REGISTRATION ==================== -->
+    <div id="register-screen" class="hidden absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
+      <div class="flex flex-col items-center justify-center flex-grow py-4">
+        <!-- Circular Frame for logo in register screen -->
+        <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg border border-slate-800 mb-3 overflow-hidden">
+          <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-1">
+        </div>
+        <h1 class="text-2xl font-extrabold text-white">Daftar Anggota KARTAR 15</h1>
+        <p class="text-slate-400 text-xs mt-1 text-center">Gabung bersama ratusan pemuda lainnya di lingkungan RW 15!</p>
+
+        <!-- Register Card -->
+        <form id="register-form" onsubmit="handleRegistration(event)" class="w-full mt-5 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3.5">
+          
+          <!-- Name -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Nama Lengkap</label>
+            <input type="text" id="reg-name" required placeholder="Contoh: Rian Anggara" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+          </div>
+
+          <!-- WhatsApp -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">No. WhatsApp aktif</label>
+            <input type="tel" id="reg-phone" required placeholder="Contoh: 08xxxxxxxxxx" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+          </div>
+
+          <!-- RT Selector -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Asal RT</label>
+              <select id="reg-rt" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+                <option value="RT 01">RT 01</option>
+                <option value="RT 02">RT 02</option>
+                <option value="RT 03">RT 03</option>
+                <option value="RT 04">RT 04</option>
+                <option value="RT 05">RT 05</option>
+                <option value="RT 06">RT 06</option>
+                <option value="RT 07">RT 07</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Hobi / Fokus</label>
+              <input type="text" id="reg-hobby" required placeholder="Futsal, MLBB, dll" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Buat Kata Sandi</label>
+            <div class="relative">
+              <input type="password" id="reg-password" required placeholder="Minimal 6 karakter" minlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+              <button type="button" onclick="togglePasswordVisibility('reg-password', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                <i class="fa-solid fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Promo Box Info -->
+          <div class="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-xl flex items-center gap-2.5">
+            <i class="fa-solid fa-gift text-sm text-indigo-400"></i>
+            <span class="text-[9px] text-slate-300 leading-tight">Dapatkan E-Card Karta Virtual resmi setelah berhasil mendaftar!</span>
+          </div>
+
+          <!-- Register Action Button -->
+          <button type="submit" class="w-full bg-gradient-to-r from-rose-500 to-indigo-600 hover:from-rose-400 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-lg transition-all transform active:scale-95">
+            Daftar Sekarang <i class="fa-solid fa-arrow-right-to-bracket ml-1.5"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Go Back to Login -->
+      <div class="text-center pb-2">
+        <button onclick="switchToScreen('login')" class="text-xs text-slate-400 hover:text-white transition-colors">
+          Sudah punya akun? <span class="font-bold text-indigo-400 underline ml-1">Masuk di sini</span>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ==================== MAIN APPLICATION CONTAINER ==================== -->
+    <div id="app-screen" class="hidden flex flex-col h-full w-full bg-slate-950">
+      
+      <!-- TOP BAR -->
+      <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-40">
+        <div class="flex items-center gap-2">
+          <!-- Circular Frame for logo in app header -->
+          <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-slate-800">
+            <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-0.5">
+          </div>
+          <div>
+            <span class="font-extrabold text-md bg-gradient-to-r from-indigo-400 to-rose-400 bg-clip-text text-transparent">KARTAR 15</span>
+            <span id="user-badge" class="block text-[10px] text-slate-400 font-medium leading-none mt-0.5">Memuat...</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Role Indicator Info -->
+          <div id="role-indicator" class="text-[10px] font-bold px-2 py-1 rounded-full border bg-emerald-950 border-emerald-500 text-emerald-400 flex items-center gap-1">
+            <i class="fa-solid fa-circle-user"></i> <span id="role-text">Anggota</span>
+          </div>
+          
+          <!-- Logout Button -->
+          <button onclick="logout()" class="text-slate-400 hover:text-rose-400 p-2 text-sm transition-colors" title="Keluar">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- NOTIFICATION BANNER -->
+      <div id="app-toast" class="hidden bg-indigo-600 text-white text-xs px-4 py-2 flex items-center justify-between border-b border-indigo-500 animate-slide-down">
+        <span id="toast-message">Pesan notifikasi di sini...</span>
+        <button onclick="closeToast()" class="text-white hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- MAIN SCROLLABLE CONTENT AREA -->
+      <main class="flex-grow overflow-y-auto pb-24" id="main-content">
+        
+        <!-- SECTION 1: POJOK WARGA (FEED) -->
+        <section id="section-feed" class="p-4 space-y-4">
+          <!-- Create Post Trigger Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-9 h-9 bg-indigo-500 text-white font-bold rounded-full flex items-center justify-center text-sm" id="avatar-placeholder">
+                U
+              </div>
+              <input type="text" onclick="openPostModal()" readonly placeholder="Ada info seru apa hari ini di RW 15? Posting yuk..." class="flex-grow bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-full px-4 py-2.5 text-xs text-slate-400 cursor-pointer focus:outline-none transition-colors">
+            </div>
+            <div class="flex items-center justify-between border-t border-slate-800 pt-2.5 text-slate-400 text-xs">
+              <button onclick="openPostModal('kegiatan')" class="flex items-center gap-2 hover:text-indigo-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-calendar-check text-indigo-400"></i> Info Kegiatan</button>
+              <button onclick="openPostModal('mabar')" class="flex items-center gap-2 hover:text-rose-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-gamepad text-rose-400"></i> Mabar Hobi</button>
+              <button onclick="openPostModal('promosi')" class="flex items-center gap-2 hover:text-amber-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-store text-amber-400"></i> Promosi UKM</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Feed Container -->
+          <div id="feed-list" class="space-y-4">
+            <!-- Feed items will be inserted dynamically -->
+          </div>
+        </section>
+
+        <!-- SECTION 2: AGENDA (EVENT HUB) -->
+        <section id="section-agenda" class="hidden p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-white">Event & Kegiatan</h2>
+              <p class="text-xs text-slate-400">Yuk ikutan dan berkontribusi langsung di lingkungan!</p>
+            </div>
+            <!-- Pengurus/Wakil/Ketua Only Event Button -->
+            <button id="btn-create-event" onclick="openEventModal()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+              <i class="fa-solid fa-plus"></i> Tambah Event
+            </button>
+          </div>
+
+          <!-- Agenda List Container -->
+          <div id="event-list" class="space-y-4">
+            <!-- Event items will be inserted dynamically -->
+          </div>
+        </section>
+
+        <!-- SECTION 3: IDE CUAN (RUANG DISKUSI IDE PROGRAM/USAHA) -->
+        <section id="section-cuan" class="hidden p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-white">Ide Cuan & Program</h2>
+              <p class="text-xs text-slate-400">Punya ide usaha pribadi atau program pendanaan kas Karta?</p>
+            </div>
+            <button onclick="openCuanModal()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+              <i class="fa-solid fa-lightbulb"></i> Ajukan Ide
+            </button>
+          </div>
+
+          <!-- Info Hub Box -->
+          <div class="bg-gradient-to-tr from-slate-900 to-indigo-950/40 p-4 rounded-2xl border border-indigo-500/20 shadow-md">
+            <h3 class="text-xs font-extrabold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wide"><i class="fa-solid fa-money-bill-trend-up"></i> Dari Pemuda, Untuk Pemuda</h3>
+            <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">Tuliskan ide kreatif kamu yang berpotensi menghasilkan uang untuk personal (pribadi) maupun untuk menyokong pundi-pundi dana kas Karang Taruna.</p>
+          </div>
+
+          <!-- Ideas Dynamic List Container -->
+          <div id="cuan-list" class="space-y-4">
+            <!-- Ideas items dynamically inserted here -->
+          </div>
+        </section>
+
+        <!-- SECTION 4: LAPORAN KEUANGAN (KAS KARTA) -->
+        <section id="section-finance" class="hidden p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-white">Kas Karang Taruna</h2>
+              <p class="text-xs text-slate-400">Laporan transparan dana masuk & keluar RW 15</p>
+            </div>
+            <!-- Bendahara Only Transaction Button -->
+            <button id="btn-create-transaction" onclick="openTransactionModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+              <i class="fa-solid fa-calculator"></i> Catat Transaksi
+            </button>
+          </div>
+
+          <!-- GLOWING TOTAL BALANCE CARD -->
+          <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 border border-emerald-500/30 p-5 rounded-2xl shadow-xl shadow-emerald-950/10 relative overflow-hidden">
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/10 text-6xl font-black select-none"><i class="fa-solid fa-wallet"></i></div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Total Saldo Kas RW 15</span>
+            <h3 id="finance-total-balance" class="text-3xl font-black text-emerald-400 mt-1">Rp 0</h3>
+            <div class="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div>
+                <span class="block text-[10px] text-slate-500">TOTAL PEMASUKAN</span>
+                <span id="finance-total-income" class="font-bold text-emerald-400">Rp 0</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-500">TOTAL PENGELUARAN</span>
+                <span id="finance-total-expense" class="font-bold text-rose-400">Rp 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bendahara Only Alert Banner -->
+          <div id="bendahara-banner" class="hidden bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm font-bold"><i class="fa-solid fa-lock-open"></i></div>
+            <p class="text-[11px] text-amber-300 leading-tight font-medium">Akses Bendahara Aktif! Anda memiliki otoritas penuh untuk menambah/mengedit riwayat keuangan kas.</p>
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+            <span class="font-bold uppercase tracking-wider text-[10px]">Riwayat Mutasi Dana</span>
+            <span>Update: Hari ini</span>
+          </div>
+
+          <!-- Transaction Ledger List -->
+          <div id="transaction-list" class="space-y-2.5">
+            <!-- Dynamic finance items populated here -->
+          </div>
+        </section>
+
+        <!-- SECTION 5: KAS KREASI & MENU UTAMA -->
+        <section id="section-menu" class="hidden p-4 space-y-4">
+          <!-- User Profile info card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-md">
+            <div class="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-rose-500 rounded-xl flex items-center justify-center text-white font-black text-lg" id="menu-avatar">
+              U
+            </div>
+            <div>
+              <h3 class="text-md font-bold text-white leading-none" id="menu-user-name">Memuat...</h3>
+              <p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5"><i class="fa-solid fa-map-pin text-rose-500"></i> <span id="menu-user-rt">RT 01 / RW 15</span></p>
+              <span id="menu-user-role-badge" class="inline-block mt-1.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase bg-indigo-950 text-indigo-400">Anggota</span>
+            </div>
+          </div>
+
+          <!-- PANEL KETUA: MANAJEMEN ANGGOTA (KHUSUS KETUA) -->
+          <div id="panel-ketua" class="hidden bg-slate-900 border border-rose-500/30 p-4 rounded-2xl shadow-lg space-y-3 relative overflow-hidden">
+            <div class="absolute -right-8 -top-8 w-24 h-24 bg-rose-500/5 rounded-full blur-xl"></div>
+            <h3 class="text-xs font-extrabold text-rose-400 uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-crown"></i> Panel Ketua: Manajemen Jabatan</h3>
+            <p class="text-[11px] text-slate-400 leading-relaxed">Sebagai Ketua, Anda memiliki wewenang untuk mengubah jabatan/peran seluruh anggota di lingkungan RW 15 secara real-time.</p>
+            
+            <div class="border-t border-slate-800 pt-3 space-y-3" id="member-management-list">
+              <!-- Member items with quick role-selection dropdown will be generated here -->
+            </div>
+          </div>
+
+          <!-- TAB SUB-MENU: SUARA PEMUDA (POLLING) -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-square-poll-vertical text-indigo-400"></i> Polling Aspirasi Aktif</h3>
+              <!-- Pengurus/Wakil/Ketua Only Poll Button -->
+              <button id="btn-create-poll" onclick="openPollModal()" class="hidden bg-indigo-600/10 border border-indigo-500/20 hover:bg-indigo-600/20 text-indigo-400 text-[10px] font-bold px-2 py-1 rounded">
+                + Polling
+              </button>
+            </div>
+            <div id="polls-list" class="space-y-3.5">
+              <!-- Polling dynamic entries -->
+            </div>
+          </div>
+
+          <!-- TAB SUB-MENU: KREASI UKM/HOBI -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest"><i class="fa-solid fa-icons text-amber-400"></i> Kreasi & UKM Pemuda</h3>
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-center text-xs">
+              <button onclick="switchMenuSubTab('ukm')" id="btn-menu-subtab-ukm" class="flex-1 py-1.5 font-bold rounded-lg bg-indigo-600 text-white transition-all">UKM Karta</button>
+              <button onclick="switchMenuSubTab('hobi')" id="btn-menu-subtab-hobi" class="flex-1 py-1.5 font-medium rounded-lg text-slate-400 hover:text-white transition-all">Klub Hobi</button>
+            </div>
+            
+            <!-- Subtab UKM Grid -->
+            <div id="menu-ukm-container" class="grid grid-cols-2 gap-2"></div>
+            <!-- Subtab Hobi list -->
+            <div id="menu-hobi-container" class="hidden space-y-2"></div>
+          </div>
+
+          <!-- TAMPILAN KARTU ANGGOTA ELEKTRONIK -->
+          <div id="virtual-card" class="bg-slate-900 border border-indigo-500 rounded-2xl p-5 shadow-xl relative overflow-hidden transition-all duration-500">
+            <div class="absolute -right-16 -bottom-16 w-48 h-48 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-full blur-2xl"></div>
+            
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <div class="flex items-center gap-1.5">
+                <div class="w-6 h-6 bg-indigo-600 rounded flex items-center justify-center text-[10px] font-bold text-white"><i class="fa-solid fa-id-badge"></i></div>
+                <span class="text-xs font-extrabold tracking-wider text-indigo-400">KARTU ANGGOTA KARTAR 15</span>
+              </div>
+              <span id="card-role-indicator" class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-bold uppercase">AKTIF</span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="space-y-3 relative z-10">
+              <div class="flex gap-4">
+                <!-- Circular Frame for logo in virtual member card -->
+                <div class="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-rose-500 rounded-xl flex items-center justify-center text-white font-black text-xl overflow-hidden" id="card-initials">
+                  U
+                </div>
+                <div>
+                  <h4 class="text-md font-extrabold text-white leading-tight" id="card-name">Memuat...</h4>
+                  <p class="text-xs text-indigo-300" id="card-rt">RT 01 / RW 15</p>
+                  <p class="text-[10px] text-slate-400 mt-1" id="card-id">ID: #K15-2026-000</p>
+                </div>
+              </div>
+
+              <div class="border-t border-slate-800/80 pt-3 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span class="block text-[10px] text-slate-500 uppercase">Minat/Hobi</span>
+                  <span class="font-semibold text-slate-200 text-xs" id="card-hobby">Memuat...</span>
+                </div>
+                <div>
+                  <span class="block text-[10px] text-slate-500 uppercase">Tgl Bergabung</span>
+                  <span class="font-semibold text-slate-200 text-xs" id="card-date">Memuat...</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Share Promo Button -->
+            <button onclick="shareKartaCard()" class="mt-4 w-full bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 font-semibold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5">
+              <i class="fa-brands fa-whatsapp text-emerald-400"></i> Bagikan E-Card & Ajak Teman
+            </button>
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- NAVIGATION BAR -->
+      <nav class="absolute bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 flex items-center justify-between px-2 py-1.5 z-40">
+        <!-- Tab 1: Feed -->
+        <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 flex flex-col items-center py-2 text-indigo-500 transition-colors">
+          <i class="fa-solid fa-house-laptop text-lg"></i>
+          <span class="text-[9px] font-bold mt-1">Pojok Warga</span>
+        </button>
+
+        <!-- Tab 2: Agenda -->
+        <button onclick="switchTab('agenda')" id="nav-agenda" class="flex-1 flex flex-col items-center py-2 text-slate-500 hover:text-slate-300 transition-colors">
+          <i class="fa-solid fa-calendar-days text-lg"></i>
+          <span class="text-[9px] font-medium mt-1">Agenda</span>
+        </button>
+
+        <!-- Tab 3: Ide Cuan -->
+        <button onclick="switchTab('cuan')" id="nav-cuan" class="flex-1 flex flex-col items-center py-2 text-slate-500 hover:text-slate-300 transition-colors">
+          <i class="fa-solid fa-hand-holding-dollar text-lg"></i>
+          <span class="text-[9px] font-medium mt-1">Ide Cuan</span>
+        </button>
+
+        <!-- Tab 4: Kas Karta -->
+        <button onclick="switchTab('finance')" id="nav-finance" class="flex-1 flex flex-col items-center py-2 text-slate-500 hover:text-slate-300 transition-colors">
+          <i class="fa-solid fa-wallet text-lg"></i>
+          <span class="text-[9px] font-medium mt-1">Kas Karta</span>
+        </button>
+
+        <!-- Tab 5: Menu Utama -->
+        <button onclick="switchTab('menu')" id="nav-menu" class="flex-1 flex flex-col items-center py-2 text-slate-500 hover:text-slate-300 transition-colors">
+          <i class="fa-solid fa-bars text-lg"></i>
+          <span class="text-[9px] font-medium mt-1">Menu</span>
+        </button>
+      </nav>
+
+    </div>
+
+    <!-- ==================== MODAL: ADD POST ==================== -->
+    <div id="modal-post" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-t-3xl md:rounded-2xl w-full max-w-sm overflow-hidden animate-slide-up shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="text-md font-bold text-white"><i class="fa-solid fa-pen-fancy text-indigo-400 mr-1.5"></i>Buat Postingan Baru</h3>
+          <button onclick="closePostModal()" class="text-slate-400 hover:text-white p-1 text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 space-y-4">
+          <!-- Post Tag Selection -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1.5">Kategori Post</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="selectPostCategory('Umum')" id="tag-Umum" class="py-1.5 px-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:opacity-90">#Umum</button>
+              <button onclick="selectPostCategory('Kegiatan')" id="tag-Kegiatan" class="py-1.5 px-2 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold hover:bg-slate-700">#Kegiatan</button>
+              <button onclick="selectPostCategory('Mabar')" id="tag-Mabar" class="py-1.5 px-2 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold hover:bg-slate-700">#Mabar</button>
+            </div>
+          </div>
+          <!-- Textarea -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Isi Postingan</label>
+            <textarea id="post-text" placeholder="Ceritakan ide, ajakan, hobi, atau info terbaru di RW 15..." rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs focus:ring-2 focus:ring-indigo-500 text-white focus:outline-none resize-none"></textarea>
+          </div>
+          <!-- Image Mockup Option -->
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <span class="flex items-center gap-2"><i class="fa-regular fa-image text-emerald-400"></i> Lampirkan Gambar (MOCK)</span>
+            <input type="checkbox" id="post-mock-image" class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-800 focus:ring-indigo-500">
+          </div>
+          <!-- Submit -->
+          <button onclick="submitNewPost()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all">
+            Kirim ke Pojok Warga <i class="fa-solid fa-paper-plane ml-1.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD AGENDA ==================== -->
+    <div id="modal-event" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-t-3xl md:rounded-2xl w-full max-w-sm overflow-hidden animate-slide-up shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="text-md font-bold text-white"><i class="fa-solid fa-calendar-plus text-indigo-400 mr-1.5"></i>Buat Agenda Baru</h3>
+          <button onclick="closeEventModal()" class="text-slate-400 hover:text-white p-1 text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Nama Agenda</label>
+            <input type="text" id="event-title" placeholder="Contoh: Kerja Bakti Keren" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Tanggal</label>
+              <input type="text" id="event-date" placeholder="Contoh: 12 Juli 2026" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Lokasi</label>
+              <input type="text" id="event-location" placeholder="Contoh: Balai RT 03" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Deskripsi Singkat</label>
+            <textarea id="event-desc" placeholder="Tulis rincian acara, dresscode, dsb..." rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none resize-none"></textarea>
+          </div>
+          <button onclick="submitNewEvent()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all">
+            Publikasikan Agenda <i class="fa-solid fa-bullhorn ml-1.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD IDE CUAN ==================== -->
+    <div id="modal-cuan" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-t-3xl md:rounded-2xl w-full max-w-sm overflow-hidden animate-slide-up shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="text-md font-bold text-white"><i class="fa-solid fa-lightbulb text-indigo-400 mr-1.5"></i>Ajukan Ide Cuan Kreatif</h3>
+          <button onclick="closeCuanModal()" class="text-slate-400 hover:text-white p-1 text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="cuan-form" onsubmit="submitNewCuan(event)" class="p-5 space-y-3.5">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Judul Program / Usaha</label>
+            <input type="text" id="cuan-title" required placeholder="Contoh: Pengelolaan Sampah Plastik Kreatif" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Jenis Tujuan Pendapatan</label>
+            <select id="cuan-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="Dana Kas Karta">Dana Kas Karang Taruna (Bersama)</option>
+              <option value="Usaha Pribadi">Usaha Mandiri Pribadi (Pemberdayaan)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Deskripsi & Potensi Keuntungan</label>
+            <textarea id="cuan-desc" required placeholder="Jelaskan cara kerja ide ini, bagaimana bisa menghasilkan uang, and siapa yang menjalankannya..." rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none resize-none"></textarea>
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all">
+            Luncurkan Ide ke Cuan-Hub <i class="fa-solid fa-paper-plane ml-1.5"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD TRANSACTION ==================== -->
+    <div id="modal-transaction" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-t-3xl md:rounded-2xl w-full max-w-sm overflow-hidden animate-slide-up shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="text-md font-bold text-white"><i class="fa-solid fa-wallet text-emerald-400 mr-1.5"></i>Catat Transaksi</h3>
+          <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-white p-1 text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="transaction-form" onsubmit="submitNewTransaction(event)" class="p-5 space-y-3.5">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Tipe Mutasi</label>
+              <select id="trans-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
+                <option value="Masuk">Uang Masuk (Pemasukan)</option>
+                <option value="Keluar">Uang Keluar (Pengeluaran)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Kategori</label>
+              <select id="trans-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
+                <option value="Iuran Bulanan">Iuran Bulanan</option>
+                <option value="Dana RW">Dana RW</option>
+                <option value="Usaha Cuan">Hasil Usaha Cuan</option>
+                <option value="Sponsor">Sponsor / Donatur</option>
+                <option value="Konsumsi">Konsumsi Agenda</option>
+                <option value="Logistik">Logistik & Alat</option>
+                <option value="Lain-lain">Lain-lain</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Keterangan / Deskripsi Transaksi</label>
+            <input type="text" id="trans-desc" required placeholder="Contoh: Penjualan botol bekas program Cuan-Hub" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Nominal Transaksi (Rupiah)</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-bold">Rp</span>
+              <input type="number" id="trans-amount" required placeholder="Contoh: 150000" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all">
+            Simpan Mutasi Kas <i class="fa-solid fa-circle-check ml-1.5"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD POLL ==================== -->
+    <div id="modal-poll" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-t-3xl md:rounded-2xl w-full max-w-sm overflow-hidden animate-slide-up shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="text-md font-bold text-white"><i class="fa-solid fa-square-plus text-indigo-400 mr-1.5"></i>Buat Polling Suara</h3>
+          <button onclick="closePollModal()" class="text-slate-400 hover:text-white p-1 text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Pertanyaan Polling</label>
+            <input type="text" id="poll-question" placeholder="Contoh: Lomba Agustusan mau game apa?" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Pilihan 1</label>
+            <input type="text" id="poll-opt1" placeholder="Pilihan Pertama" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Pilihan 2</label>
+            <input type="text" id="poll-opt2" placeholder="Pilihan Kedua" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none">
+          </div>
+          <button onclick="submitNewPoll()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all">
+            Luncurkan Polling Suara <i class="fa-solid fa-rocket ml-1.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Javascript Logic for Mock App Interactivity with Real-Time Firebase Fallback -->
+  <script type="module">
+    import { doc, setDoc, getDoc, getDocs, collection, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- MANAJEMEN STATE SISTEM ---
+    let currentUser = null;
+    let selectedPostCategory = "Umum";
+    let activeSubscribedListeners = [];
+
+    // --- DAFTAR DATABASE PENGGUNA AWAL (FALLBACK JIKA OFFLINE/MOCK) ---
+    const defaultLocalUsers = [
+      { name: "Fajar Pratama", phone: "082111111111", password: "123456", rt: "RT 02", role: "Ketua", hobby: "Futsal & Memimpin", joinDate: "05 Jan 2026", memberId: "K15-2026-112" },
+      { name: "Bagas Saputra", phone: "082444444444", password: "123456", rt: "RT 04", role: "Wakil Ketua", hobby: "Mobile Legends", joinDate: "15 Feb 2026", memberId: "K15-2026-302" },
+      { name: "Siti Rahma", phone: "082333333333", password: "123456", rt: "RT 05", role: "Bendahara", hobby: "Membaca & Akuntansi", joinDate: "12 Mar 2026", memberId: "K15-2026-441" },
+      { name: "Rian Anggara", phone: "082222222222", password: "123456", rt: "RT 03", role: "Anggota", hobby: "MLBB & Musik", joinDate: "21 Jun 2026", memberId: "K15-2026-987" }
+    ];
+
+    let localUsers = [...defaultLocalUsers];
+    let localPosts = [];
+    let localEvents = [];
+    let localCuanIdeas = [];
+    let localTransactions = [];
+    let localPolls = [];
+
+    const getDbRef = () => window.db;
+    const getAppId = () => window.appId;
+
+    const getPublicCollectionRef = (collectionName) => {
+      const db = getDbRef();
+      const appId = getAppId();
+      return collection(db, 'artifacts', appId, 'public', 'data', collectionName);
+    };
+
+    const getPublicDocRef = (collectionName, docId) => {
+      const db = getDbRef();
+      const appId = getAppId();
+      return doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
+    };
+
+    window.addEventListener('load', () => {
+      const checkFirebase = setInterval(() => {
+        if (window.firestoreInited) {
+          clearInterval(checkFirebase);
+          setupRealTimeSync();
+        }
+      }, 100);
+    });
+
+    function setupRealTimeSync() {
+      if (!window.db) return;
+
+      // 1. Sinkronisasi Data Pengguna
+      const usersUnsubscribe = onSnapshot(getPublicCollectionRef('users'), (snapshot) => {
+        const users = [];
+        snapshot.forEach(doc => users.push(doc.data()));
+        if (users.length > 0) {
+          localUsers = users;
+        } else {
+          defaultLocalUsers.forEach(async (u) => {
+            await setDoc(getPublicDocRef('users', u.phone), u);
+          });
+          localUsers = [...defaultLocalUsers];
+        }
+        if (currentUser) {
+          const freshUser = localUsers.find(u => u.phone === currentUser.phone);
+          if (freshUser) {
+            currentUser = freshUser;
+            updateRoleUIPermissions();
+          }
+        }
+        renderMemberManagement();
+      }, (error) => {
+        console.error("Gagal melakukan sinkronisasi data Pengguna:", error);
+      });
+
+      // 2. Sinkronisasi Postingan (Feed)
+      const feedUnsubscribe = onSnapshot(getPublicCollectionRef('posts'), (snapshot) => {
+        const posts = [];
+        snapshot.forEach(doc => posts.push({ fireId: doc.id, ...doc.data() }));
+        posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localPosts = posts;
+        renderFeed();
+      }, (error) => {
+        console.error("Gagal melakukan sinkronisasi Feed:", error);
+      });
+
+      // 3. Sinkronisasi Agenda (Event)
+      const eventsUnsubscribe = onSnapshot(getPublicCollectionRef('events'), (snapshot) => {
+        const evs = [];
+        snapshot.forEach(doc => evs.push({ fireId: doc.id, ...doc.data() }));
+        evs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localEvents = evs;
+        renderEvents();
+      }, (error) => {
+        console.error("Gagal melakukan sinkronisasi Agenda:", error);
+      });
+
+      // 4. Sinkronisasi Ide Cuan
+      const cuanUnsubscribe = onSnapshot(getPublicCollectionRef('cuan'), (snapshot) => {
+        const ideas = [];
+        snapshot.forEach(doc => ideas.push({ fireId: doc.id, ...doc.data() }));
+        ideas.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+        localCuanIdeas = ideas;
+        renderCuanIdeas();
+      }, (error) => {
+        console.error("Gagal melakukan sinkronisasi Ide Cuan:", error);
+      });
+
+      // 5. Sinkronisasi Keuangan (Kas Karta)
+      const transUnsubscribe = onSnapshot(getPublicCollectionRef('transactions'), (snapshot) => {
+        const trans = [];
+        snapshot.forEach(doc => trans.push({ fireId: doc.id, ...doc.data() }));
+        trans.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localTransactions = trans;
+        renderFinance();
+      }, (error) => {
+        console.error("Gagal melakukan sinkronisasi Kas Karta:", error);
+      });
+
+      // 6. Sinkronisasi Polling Aspirasi
+      const pollUnsubscribe = onSnapshot(getPublicCollectionRef('polls'), (snapshot) => {
+        const pl = [];
+        snapshot.forEach(doc => pl.push({ fireId: doc.id, ...doc.data() }));
+        pl.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        localPolls = pl;
+        renderPolls();
+      }, (error) => {
+        console.error("Gagal melakukan sinkronisasi Polling:", error);
+      });
+
+      activeSubscribedListeners.push(usersUnsubscribe, feedUnsubscribe, eventsUnsubscribe, cuanUnsubscribe, transUnsubscribe, pollUnsubscribe);
+    }
+
+    window.handleLogin = async function() {
+      const identifier = document.getElementById('login-identifier').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!identifier || !password) {
+        showToast("Harap isi No. WhatsApp/Nama dan Kata Sandi!");
+        return;
+      }
+
+      if (window.auth && !window.auth.currentUser) {
+        await signInAnonymously(window.auth);
+      }
+
+      const user = localUsers.find(u => 
+        (u.phone === identifier || u.name.toLowerCase() === identifier.toLowerCase()) && 
+        u.password === password
+      );
+
+      if (!user) {
+        showToast("No. WhatsApp, Nama, atau Kata Sandi salah!");
+        return;
+      }
+
+      currentUser = user;
+
+      const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('avatar-placeholder').innerText = initials;
+      document.getElementById('menu-avatar').innerText = initials;
+      document.getElementById('menu-user-name').innerText = currentUser.name;
+      document.getElementById('menu-user-rt').innerText = `${currentUser.rt} / RW 15`;
+      document.getElementById('menu-user-role-badge').innerText = currentUser.role;
+
+      document.getElementById('card-initials').innerText = initials;
+      document.getElementById('card-name').innerText = currentUser.name;
+      document.getElementById('card-rt').innerText = `Asal: ${currentUser.rt} / RW 15`;
+      document.getElementById('card-id').innerText = `ID Anggota: ${currentUser.memberId}`;
+      document.getElementById('card-hobby').innerText = currentUser.hobby;
+      document.getElementById('card-date').innerText = currentUser.joinDate;
+
+      switchToScreen('app');
+      switchTab('feed'); 
+
+      updateRoleUIPermissions();
+      renderAll();
+      showToast(`Selamat datang kembali, ${currentUser.name}!`);
+    };
+
+    window.handleRegistration = async function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('reg-name').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const rt = document.getElementById('reg-rt').value;
+      const hobby = document.getElementById('reg-hobby').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      const isExist = localUsers.some(u => u.phone === phone);
+      if (isExist) {
+        showToast("Nomor WhatsApp ini sudah terdaftar!");
+        return;
+      }
+
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const todayStr = new Date().toLocaleDateString('id-ID', options);
+      const randomIdSuffix = Math.floor(Math.random() * 900) + 100;
+      const memberId = `K15-2026-${randomIdSuffix}`;
+
+      const newUser = {
+        name: name,
+        phone: phone,
+        password: password,
+        rt: rt,
+        role: "Anggota", 
+        hobby: hobby,
+        joinDate: todayStr,
+        memberId: memberId
+      };
+
+      try {
+        await setDoc(getPublicDocRef('users', phone), newUser);
+        document.getElementById('register-form').reset();
+        switchToScreen('login');
+        
+        document.getElementById('login-identifier').value = phone;
+        document.getElementById('login-password').value = password;
+        showToast("Registrasi sukses! Menghubungkan ke database...");
+      } catch (err) {
+        console.error("Gagal mendaftarkan anggota baru ke Firestore:", err);
+        showToast("Koneksi gagal, silakan coba beberapa saat lagi.");
+      }
+    };
+
+    window.logout = function() {
+      currentUser = null;
+      document.getElementById('login-identifier').value = "";
+      document.getElementById('login-password').value = "";
+      switchToScreen('login');
+      showToast("Anda telah keluar dari aplikasi.");
+    };
+
+    window.changeUserRoleByKetua = async function(phone, newRole) {
+      if (!currentUser || currentUser.role !== 'Ketua') return;
+
+      try {
+        const userDocRef = getPublicDocRef('users', phone);
+        await updateDoc(userDocRef, { role: newRole });
+        showToast("Jabatan anggota berhasil diperbarui secara online!");
+      } catch (err) {
+        console.error("Gagal memperbarui jabatan anggota:", err);
+        showToast("Gagal mengubah jabatan, periksa jaringan Anda.");
+      }
+    };
+
+    window.submitNewPost = async function() {
+      const text = document.getElementById('post-text').value.trim();
+      const mockImg = document.getElementById('post-mock-image').checked;
+
+      if (!text) {
+        showToast("Isi postingan tidak boleh kosong!");
+        return;
+      }
+
+      const newPost = {
+        author: currentUser.name,
+        rt: currentUser.rt,
+        role: currentUser.role,
+        category: selectedPostCategory,
+        text: text,
+        likes: 0,
+        likedBy: [], 
+        comments: [],
+        time: "Baru saja",
+        timestamp: Date.now(),
+        hasImage: mockImg
+      };
+
+      try {
+        await addDoc(getPublicCollectionRef('posts'), newPost);
+        closePostModal();
+        showToast("Berhasil mengirim postingan secara real-time!");
+      } catch (err) {
+        console.error("Gagal menambahkan kiriman:", err);
+      }
+    };
+
+    window.likePost = async function(fireId) {
+      const post = localPosts.find(p => p.fireId === fireId);
+      if (post) {
+        const likedBy = post.likedBy || [];
+        const myPhone = currentUser.phone;
+        const index = likedBy.indexOf(myPhone);
+        
+        let newLikes = post.likes;
+        if (index > -1) {
+          likedBy.splice(index, 1);
+          newLikes = Math.max(0, newLikes - 1);
+        } else {
+          likedBy.push(myPhone);
+          newLikes++;
+        }
+
+        try {
+          await updateDoc(getPublicDocRef('posts', fireId), {
+            likes: newLikes,
+            likedBy: likedBy
+          });
+        } catch (err) {
+          console.error("Gagal memperbarui Like postingan:", err);
+        }
+      }
+    };
+
+    window.addComment = async function(event, fireId) {
+      if (event.key === 'Enter') {
+        const input = event.target;
+        const text = input.value.trim();
+        if (text) {
+          const post = localPosts.find(p => p.fireId === fireId);
+          if (post) {
+            const comments = post.comments || [];
+            comments.push({
+              author: `${currentUser.name} (${currentUser.rt})`,
+              text: text,
+              timestamp: Date.now()
+            });
+
+            try {
+              await updateDoc(getPublicDocRef('posts', fireId), { comments: comments });
+              input.value = '';
+              showToast("Komentar berhasil dikirim!");
+            } catch (err) {
+              console.error("Gagal menambahkan komentar:", err);
+            }
+          }
+        }
+      }
+    };
+
+    window.submitNewEvent = async function() {
+      const title = document.getElementById('event-title').value.trim();
+      const date = document.getElementById('event-date').value.trim();
+      const loc = document.getElementById('event-location').value.trim();
+      const desc = document.getElementById('event-desc').value.trim();
+
+      if (!title || !date || !loc || !desc) {
+        showToast("Semua data agenda wajib diisi!");
+        return;
+      }
+
+      const newEv = {
+        title: title,
+        date: date,
+        location: loc,
+        desc: desc,
+        attendees: 1,
+        attendeesList: [currentUser.phone],
+        timestamp: Date.now()
+      };
+
+      try {
+        await addDoc(getPublicCollectionRef('events'), newEv);
+        closeEventModal();
+        showToast("Agenda baru berhasil dipublikasikan secara real-time!");
+      } catch (err) {
+        console.error("Gagal menambahkan agenda:", err);
+      }
+    };
+
+    window.joinEvent = async function(fireId) {
+      const event = localEvents.find(e => e.fireId === fireId);
+      if (event) {
+        const list = event.attendeesList || [];
+        const myPhone = currentUser.phone;
+        const index = list.indexOf(myPhone);
+
+        let newAttendees = event.attendees || 0;
+        if (index > -1) {
+          list.splice(index, 1);
+          newAttendees = Math.max(0, newAttendees - 1);
+          showToast("Batal mengikuti agenda.");
+        } else {
+          list.push(myPhone);
+          newAttendees++;
+          showToast("Kehadiran Anda berhasil terdaftar!");
+        }
+
+        try {
+          await updateDoc(getPublicDocRef('events', fireId), {
+            attendees: newAttendees,
+            attendeesList: list
+          });
+        } catch (err) {
+          console.error("Gagal memperbarui status kehadiran agenda:", err);
+        }
+      }
+    };
+
+    window.submitNewCuan = async function(e) {
+      e.preventDefault();
+      const title = document.getElementById('cuan-title').value.trim();
+      const type = document.getElementById('cuan-type').value;
+      const desc = document.getElementById('cuan-desc').value.trim();
+
+      const newIdea = {
+        title: title,
+        author: currentUser.name,
+        rt: currentUser.rt,
+        type: type,
+        desc: desc,
+        upvotes: 1,
+        upvotedBy: [currentUser.phone],
+        comments: [],
+        timestamp: Date.now()
+      };
+
+      try {
+        await addDoc(getPublicCollectionRef('cuan'), newIdea);
+        closeCuanModal();
+        showToast("Ide Program Cuan berhasil dipublikasikan secara online!");
+      } catch (err) {
+        console.error("Gagal menyimpan ide cuan:", err);
+      }
+    };
+
+    window.upvoteCuan = async function(fireId) {
+      const idea = localCuanIdeas.find(i => i.fireId === fireId);
+      if (idea) {
+        const list = idea.upvotedBy || [];
+        const myPhone = currentUser.phone;
+        const index = list.indexOf(myPhone);
+
+        let votes = idea.upvotes || 0;
+        if (index > -1) {
+          list.splice(index, 1);
+          votes = Math.max(0, votes - 1);
+        } else {
+          list.push(myPhone);
+          votes++;
+        }
+
+        try {
+          await updateDoc(getPublicDocRef('cuan', fireId), {
+            upvotes: votes,
+            upvotedBy: list
+          });
+        } catch (err) {
+          console.error("Gagal melakukan upvote ide cuan:", err);
+        }
+      }
+    };
+
+    window.addCuanComment = async function(event, fireId) {
+      if (event.key === 'Enter') {
+        const input = event.target;
+        const text = input.value.trim();
+        if (text) {
+          const idea = localCuanIdeas.find(i => i.fireId === fireId);
+          if (idea) {
+            const comments = idea.comments || [];
+            comments.push({
+              author: `${currentUser.name} (${currentUser.rt})`,
+              text: text,
+              timestamp: Date.now()
+            });
+
+            try {
+              await updateDoc(getPublicDocRef('cuan', fireId), { comments: comments });
+              input.value = '';
+              showToast("Saran & kritik berhasil ditambahkan!");
+            } catch (err) {
+              console.error("Gagal mengirim masukan ide cuan:", err);
+            }
+          }
+        }
+      }
+    };
+
+    window.submitNewTransaction = async function(e) {
+      e.preventDefault();
+      const type = document.getElementById('trans-type').value;
+      const category = document.getElementById('trans-category').value;
+      const desc = document.getElementById('trans-desc').value.trim();
+      const amount = parseInt(document.getElementById('trans-amount').value);
+
+      if (!desc || isNaN(amount) || amount <= 0) {
+        showToast("Keterangan atau nominal transaksi tidak valid!");
+        return;
+      }
+
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      const dateStr = new Date().toLocaleDateString('id-ID', options);
+
+      const newTrans = {
+        date: dateStr,
+        desc: desc,
+        type: type,
+        amount: amount,
+        category: category,
+        timestamp: Date.now()
+      };
+
+      try {
+        await addDoc(getPublicCollectionRef('transactions'), newTrans);
+        closeTransactionModal();
+        showToast("Transaksi berhasil dicatat dalam kas Karta!");
+      } catch (err) {
+        console.error("Gagal mencatat mutasi keuangan:", err);
+      }
+    };
+
+    window.submitNewPoll = async function() {
+      const q = document.getElementById('poll-question').value.trim();
+      const o1 = document.getElementById('poll-opt1').value.trim();
+      const o2 = document.getElementById('poll-opt2').value.trim();
+
+      if (!q || !o1 || !o2) {
+        showToast("Lengkapi pertanyaan & pilihan voting!");
+        return;
+      }
+
+      const newPoll = {
+        question: q,
+        opt1: o1,
+        opt2: o2,
+        votes1: 0,
+        votes2: 0,
+        voters: {}, 
+        totalVotes: 0,
+        timestamp: Date.now()
+      };
+
+      try {
+        await addDoc(getPublicCollectionRef('polls'), newPoll);
+        closePollModal();
+        showToast("Polling aspirasi baru diluncurkan!");
+      } catch (err) {
+        console.error("Gagal membuat polling:", err);
+      }
+    };
+
+    window.votePoll = async function(fireId, option) {
+      const poll = localPolls.find(p => p.fireId === fireId);
+      if (poll) {
+        const voters = poll.voters || {};
+        const myPhone = currentUser.phone;
+
+        if (voters[myPhone]) {
+          showToast("Anda sudah memberikan suara dalam polling ini!");
+          return;
+        }
+
+        voters[myPhone] = option;
+        
+        let v1 = poll.votes1 || 0;
+        let v2 = poll.votes2 || 0;
+        if (option === 'opt1') v1++;
+        else v2++;
+
+        const total = v1 + v2;
+
+        try {
+          await updateDoc(getPublicDocRef('polls', fireId), {
+            voters: voters,
+            votes1: v1,
+            votes2: v2,
+            totalVotes: total
+          });
+          showToast("Terima kasih, pilihan Anda terekam!");
+        } catch (err) {
+          console.error("Gagal mengirim vote:", err);
+        }
+      }
+    };
+
+    function renderFeed() {
+      const list = document.getElementById('feed-list');
+      list.innerHTML = "";
+
+      localPosts.forEach(post => {
+        let tagColor = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+        if (post.category === "Kegiatan") tagColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+        if (post.category === "Mabar") tagColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+
+        let roleBadgeColor = "bg-slate-800 text-slate-400";
+        if (post.role === "Ketua") roleBadgeColor = "bg-red-500/20 text-red-300 border border-red-500/30";
+        else if (post.role === "Wakil Ketua") roleBadgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+        else if (post.role === "Bendahara") roleBadgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        else if (post.role === "Pengurus") roleBadgeColor = "bg-indigo-500/20 text-indigo-300";
+
+        const roleBadge = `<span class="${roleBadgeColor} text-[8px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wide">${post.role}</span>`;
+
+        const imgMockup = post.hasImage 
+          ? `<div class="mt-3 rounded-xl overflow-hidden h-32 bg-gradient-to-r from-slate-800 to-indigo-950 flex items-center justify-center text-xs text-indigo-400 border border-slate-800/80">
+               <i class="fa-solid fa-images text-xl mr-2 text-indigo-500"></i> Media Terlampir (#KARTAR 15)
+             </div>`
+          : "";
+
+        let commentsHTML = "";
+        const comments = post.comments || [];
+        if (comments.length > 0) {
+          commentsHTML = `
+            <div class="mt-3 pt-3 border-t border-slate-800/50 space-y-2">
+              ${comments.map(c => `
+                <div class="text-[11px] bg-slate-950/60 p-2 rounded-lg">
+                  <span class="font-bold text-indigo-400">${c.author}</span>
+                  <p class="text-slate-300 mt-0.5">${c.text}</p>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        const isLiked = currentUser && post.likedBy && post.likedBy.includes(currentUser.phone);
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-md";
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 bg-slate-800 text-white rounded-full flex items-center justify-center text-xs font-bold font-sans">
+                ${post.author.charAt(0)}
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-bold text-white leading-none">${post.author}</span>
+                  <span class="text-[10px] text-indigo-400 font-semibold bg-indigo-950 px-1 py-0.2 rounded">${post.rt}</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-1">
+                  ${roleBadge}
+                  <span class="text-[9px] text-slate-500">${post.time || 'Baru saja'}</span>
+                </div>
+              </div>
+            </div>
+            <span class="border text-[9px] font-bold px-2 py-0.5 rounded-full ${tagColor}">#${post.category}</span>
+          </div>
+
+          <p class="text-xs text-slate-200 leading-relaxed">${post.text}</p>
+          ${imgMockup}
+
+          <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800/80 text-xs text-slate-400">
+            <button onclick="likePost('${post.fireId}')" class="flex items-center gap-1.5 hover:text-indigo-400 ${isLiked ? 'text-indigo-400 font-semibold' : ''} transition-colors">
+              <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i> <span>${post.likes || 0}</span>
+            </button>
+            <div class="flex items-center gap-1">
+              <i class="fa-regular fa-comment text-sm"></i> <span>${comments.length} Komentar</span>
+            </div>
+          </div>
+
+          ${commentsHTML}
+
+          <div class="mt-2.5 flex items-center gap-2">
+            <input type="text" onkeypress="addComment(event, '${post.fireId}')" placeholder="Tulis komentar... (Tekan Enter)" class="w-full bg-slate-950 border border-slate-800/50 rounded-lg px-3 py-1.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+          </div>
+        `;
+
+        list.appendChild(card);
+      });
+    }
+
+    function renderEvents() {
+      const list = document.getElementById('event-list');
+      list.innerHTML = "";
+
+      localEvents.forEach(ev => {
+        const isAttending = currentUser && ev.attendeesList && ev.attendeesList.includes(currentUser.phone);
+        const joinBtnClass = isAttending 
+          ? "bg-slate-800 border border-indigo-500/50 text-indigo-400" 
+          : "bg-indigo-600 hover:bg-indigo-500 text-white";
+
+        const joinBtnText = isAttending ? "Kamu Ikutan! ✓" : "Ikutan Kuy!";
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md relative overflow-hidden";
+        card.innerHTML = `
+          <div class="absolute right-0 top-0 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-indigo-500/10">
+            KARTA EVENT
+          </div>
+          <h3 class="text-md font-bold text-white max-w-[80%]">${ev.title}</h3>
+          
+          <div class="space-y-1.5 my-3 text-xs text-slate-300">
+            <div class="flex items-center gap-2"><i class="fa-regular fa-calendar text-indigo-400 w-4"></i> <span>${ev.date}</span></div>
+            <div class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-rose-400 w-4"></i> <span>${ev.location}</span></div>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">${ev.desc}</p>
+
+          <div class="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
+            <span class="text-xs text-slate-400 font-medium">
+              <i class="fa-solid fa-users text-indigo-400 mr-1"></i> <b class="text-white">${ev.attendees || 0}</b> pemuda bergabung
+            </span>
+            <button onclick="joinEvent('${ev.fireId}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${joinBtnClass}">
+              ${joinBtnText}
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function renderCuanIdeas() {
+      const list = document.getElementById('cuan-list');
+      list.innerHTML = "";
+
+      localCuanIdeas.forEach(idea => {
+        let tagColor = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+        if (idea.type === "Dana Kas Karta") tagColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+
+        let commentsHTML = "";
+        const comments = idea.comments || [];
+        if (comments.length > 0) {
+          commentsHTML = `
+            <div class="mt-3 pt-3 border-t border-slate-800/40 space-y-2">
+              ${comments.map(c => `
+                <div class="text-[11px] bg-slate-950 p-2 rounded-lg">
+                  <span class="font-bold text-indigo-400">${c.author}</span>
+                  <p class="text-slate-300 mt-0.5">${c.text}</p>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        const isUpvoted = currentUser && idea.upvotedBy && idea.upvotedBy.includes(currentUser.phone);
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800/80 p-4 rounded-2xl shadow-md space-y-3";
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${tagColor}">Target: ${idea.type}</span>
+              <h3 class="text-sm font-bold text-white mt-2">${idea.title}</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5">Oleh: <span class="text-slate-300 font-semibold">${idea.author} (${idea.rt})</span></p>
+            </div>
+            
+            <button onclick="upvoteCuan('${idea.fireId}')" class="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-indigo-500/50 text-xs ${isUpvoted ? 'text-indigo-400 font-bold border-indigo-500/50' : 'text-slate-500'}">
+              <i class="fa-solid fa-circle-chevron-up text-md"></i>
+              <span class="mt-1">${idea.upvotes || 0}</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-slate-300 leading-relaxed font-sans">${idea.desc}</p>
+
+          <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+            <i class="fa-regular fa-comments"></i> <span>${comments.length} Masukan & Saran</span>
+          </div>
+
+          ${commentsHTML}
+
+          <!-- Comment Input -->
+          <div class="flex items-center gap-2 mt-2">
+            <input type="text" onkeypress="addCuanComment(event, '${idea.fireId}')" placeholder="Berikan saran membangun... (Enter)" class="w-full bg-slate-950 border border-slate-800/50 rounded-lg px-3 py-1.5 text-[11px] text-white focus:outline-none">
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function renderFinance() {
+      let totalIncome = 0;
+      let totalExpense = 0;
+
+      localTransactions.forEach(t => {
+        if (t.type === "Masuk") {
+          totalIncome += t.amount;
+        } else {
+          totalExpense += t.amount;
+        }
+      });
+
+      const totalBalance = totalIncome - totalExpense;
+
+      document.getElementById('finance-total-balance').innerText = formatRupiah(totalBalance);
+      document.getElementById('finance-total-income').innerText = formatRupiah(totalIncome);
+      document.getElementById('finance-total-expense').innerText = formatRupiah(totalExpense);
+
+      const list = document.getElementById('transaction-list');
+      list.innerHTML = "";
+
+      if (localTransactions.length === 0) {
+        list.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">Belum ada pencatatan kas saat ini.</div>`;
+        return;
+      }
+
+      localTransactions.forEach(t => {
+        const isIncome = t.type === "Masuk";
+        const iconClass = isIncome ? "fa-circle-arrow-down text-emerald-400" : "fa-circle-arrow-up text-rose-400";
+        const amountPrefix = isIncome ? "+" : "-";
+        const textClass = isIncome ? "text-emerald-400" : "text-rose-400";
+
+        const item = document.createElement('div');
+        item.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center justify-between";
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="text-md"><i class="fa-solid ${iconClass}"></i></div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-100">${t.desc}</h4>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[9px] text-indigo-400 bg-indigo-950 px-1.5 py-0.2 rounded font-semibold">${t.category}</span>
+                <span class="text-[9px] text-slate-500">${t.date}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-right">
+            <span class="text-xs font-bold ${textClass}">${amountPrefix} ${formatRupiah(t.amount)}</span>
+          </div>
+        `;
+
+        list.appendChild(item);
+      });
+    }
+
+    function renderMemberManagement() {
+      const list = document.getElementById('member-management-list');
+      if (!list) return;
+      list.innerHTML = "";
+
+      localUsers.forEach(user => {
+        const isSelf = currentUser && currentUser.phone === user.phone;
+
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80";
+        row.innerHTML = `
+          <div>
+            <h4 class="text-xs font-bold text-white">${user.name} <span class="text-[9px] text-slate-500">${user.rt}</span></h4>
+            <p class="text-[9px] text-slate-400 mt-0.5">ID: ${user.memberId}</p>
+          </div>
+          
+          <div>
+            <select onchange="changeUserRoleByKetua('${user.phone}', this.value)" ${isSelf ? 'disabled' : ''} class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[10px] text-indigo-300 font-bold focus:outline-none focus:ring-1 focus:ring-rose-500">
+              <option value="Anggota" ${user.role === 'Anggota' ? 'selected' : ''}>Anggota</option>
+              <option value="Pengurus" ${user.role === 'Pengurus' ? 'selected' : ''}>Pengurus</option>
+              <option value="Bendahara" ${user.role === 'Bendahara' ? 'selected' : ''}>Bendahara</option>
+              <option value="Wakil Ketua" ${user.role === 'Wakil Ketua' ? 'selected' : ''}>Wakil Ketua</option>
+              <option value="Ketua" ${user.role === 'Ketua' ? 'selected' : ''}>Ketua</option>
+            </select>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function renderPolls() {
+      const list = document.getElementById('polls-list');
+      if (!list) return;
+      list.innerHTML = "";
+
+      localPolls.forEach(poll => {
+        const v1 = poll.votes1 || 0;
+        const v2 = poll.votes2 || 0;
+        const total = poll.totalVotes || 1;
+        const pct1 = Math.round((v1 / total) * 100);
+        const pct2 = Math.round((v2 / total) * 100);
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 p-3 rounded-xl border border-slate-800";
+        
+        let pollBodyHTML = "";
+        const isVoted = currentUser && poll.voters && poll.voters[currentUser.phone];
+
+        if (isVoted) {
+          const myChoice = poll.voters[currentUser.phone];
+          const bg1 = myChoice === 'opt1' ? 'bg-indigo-600/20' : 'bg-slate-900/40';
+          const bg2 = myChoice === 'opt2' ? 'bg-indigo-600/20' : 'bg-slate-900/40';
+
+          pollBodyHTML = `
+            <div class="space-y-2 mt-2">
+              <div class="relative ${bg1} border border-slate-800 rounded-lg p-2 text-[11px] overflow-hidden">
+                <div class="absolute inset-y-0 left-0 bg-indigo-500/10" style="width: ${pct1}%"></div>
+                <div class="relative z-10 flex justify-between items-center text-slate-300">
+                  <span>${poll.opt1} ${myChoice === 'opt1' ? '✓' : ''}</span>
+                  <span class="text-indigo-400 font-bold">${pct1}%</span>
+                </div>
+              </div>
+              <div class="relative ${bg2} border border-slate-800 rounded-lg p-2 text-[11px] overflow-hidden">
+                <div class="absolute inset-y-0 left-0 bg-indigo-500/10" style="width: ${pct2}%"></div>
+                <div class="relative z-10 flex justify-between items-center text-slate-300">
+                  <span>${poll.opt2} ${myChoice === 'opt2' ? '✓' : ''}</span>
+                  <span class="text-indigo-400 font-bold">${pct2}%</span>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          pollBodyHTML = `
+            <div class="space-y-1.5 mt-2">
+              <button onclick="votePoll('${poll.fireId}', 'opt1')" class="w-full text-left bg-slate-900 border border-slate-800 hover:border-indigo-500 rounded-lg p-2 text-[11px] text-slate-300 transition-all">
+                ${poll.opt1}
+              </button>
+              <button onclick="votePoll('${poll.fireId}', 'opt2')" class="w-full text-left bg-slate-900 border border-slate-800 hover:border-indigo-500 rounded-lg p-2 text-[11px] text-slate-300 transition-all">
+                ${poll.opt2}
+              </button>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <h4 class="text-xs font-bold text-slate-200 leading-tight">${poll.question}</h4>
+          ${pollBodyHTML}
+          <div class="mt-2 text-[9px] text-slate-500 flex justify-between font-medium">
+            <span>Total: ${poll.totalVotes || 0} Suara</span>
+            <span>Berakhir dalam 4 hari</span>
+          </div>
+        `;
+
+        list.appendChild(card);
+      });
+    }
+
+    function renderAll() {
+      renderFeed();
+      renderEvents();
+      renderCuanIdeas();
+      renderFinance();
+      renderPolls();
+    }
+  </script>
+
+  <script>
+    // --- NON-FIRESTORE INTERACTIVE HELPERS ---
+    let ukmList = [
+      { id: 1, title: "Kopi Tetangga RT 03", desc: "Es kopi susu kekinian spesial biji kopi lokal asli. Diskon 15% khusus warga RW 15!", contact: "628123456789", icon: "fa-mug-hot", likes: 24, likedByMe: false },
+      { id: 2, title: "Dapur Ceria RT 01", desc: "Menerima pesanan katering, nasi box, dan aneka jajanan pasar higienis untuk acara warga.", contact: "628112233445", icon: "fa-pizza-slice", likes: 18, likedByMe: false }
+    ];
+
+    let hobiClubs = [
+      { name: "Karta E-Sports", members: "45 Anggota", icon: "fa-gamepad", bg: "from-purple-900 to-indigo-900" },
+      { name: "Karta FC (Futsal & Bola)", members: "32 Anggota", icon: "fa-volleyball", bg: "from-emerald-900 to-teal-900" }
+    ];
+
+    function handleLogoError() {
+      // Sembunyikan tag img & tampilkan fallback vector gradient
+      document.getElementById('app-logo-img').classList.add('hidden');
+      document.getElementById('logo-fallback').classList.remove('hidden');
+      document.getElementById('logo-fallback').classList.add('flex');
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      if (input.type === "password") {
+        input.type = "text";
+        icon.className = "fa-solid fa-eye-slash text-xs";
+      } else {
+        input.type = "password";
+        icon.className = "fa-solid fa-eye text-xs";
+      }
+    }
+
+    function switchToScreen(screenId) {
+      const login = document.getElementById('login-screen');
+      const register = document.getElementById('register-screen');
+      const app = document.getElementById('app-screen');
+
+      login.classList.add('hidden');
+      register.classList.add('hidden');
+      app.classList.add('hidden');
+
+      if (screenId === 'login') login.classList.remove('hidden');
+      else if (screenId === 'register') register.classList.remove('hidden');
+      else if (screenId === 'app') app.classList.remove('hidden');
+    }
+
+    function switchTab(tabId) {
+      document.getElementById('section-feed').classList.add('hidden');
+      document.getElementById('section-agenda').classList.add('hidden');
+      document.getElementById('section-cuan').classList.add('hidden');
+      document.getElementById('section-finance').classList.add('hidden');
+      document.getElementById('section-menu').classList.add('hidden');
+
+      document.getElementById(`section-${tabId}`).classList.remove('hidden');
+
+      const navIds = ['feed', 'agenda', 'cuan', 'finance', 'menu'];
+      navIds.forEach(id => {
+        const btn = document.getElementById(`nav-${id}`);
+        if (id === tabId) {
+          btn.classList.add('text-indigo-500');
+          btn.classList.remove('text-slate-500', 'hover:text-slate-300');
+        } else {
+          btn.classList.remove('text-indigo-500');
+          btn.classList.add('text-slate-500', 'hover:text-slate-300');
+        }
+      });
+    }
+
+    function switchMenuSubTab(subTab) {
+      if (subTab === 'ukm') {
+        document.getElementById('menu-ukm-container').classList.remove('hidden');
+        document.getElementById('menu-hobi-container').classList.add('hidden');
+        document.getElementById('btn-menu-subtab-ukm').className = "flex-1 py-1.5 font-bold rounded-lg bg-indigo-600 text-white transition-all";
+        document.getElementById('btn-menu-subtab-hobi').className = "flex-1 py-1.5 font-medium rounded-lg text-slate-400 hover:text-white transition-all";
+      } else {
+        document.getElementById('menu-ukm-container').classList.add('hidden');
+        document.getElementById('menu-hobi-container').classList.remove('hidden');
+        document.getElementById('btn-menu-subtab-hobi').className = "flex-1 py-1.5 font-bold rounded-lg bg-indigo-600 text-white transition-all";
+        document.getElementById('btn-menu-subtab-ukm').className = "flex-1 py-1.5 font-medium rounded-lg text-slate-400 hover:text-white transition-all";
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('app-toast');
+      const text = document.getElementById('toast-message');
+      text.innerText = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => { closeToast(); }, 5000);
+    }
+
+    function closeToast() {
+      document.getElementById('app-toast').classList.add('hidden');
+    }
+
+    function selectPostCategory(category) {
+      selectedPostCategory = category;
+      const tags = ['Umum', 'Kegiatan', 'Mabar'];
+      tags.forEach(t => {
+        const btn = document.getElementById(`tag-${t}`);
+        if (t === category) {
+          btn.className = "py-1.5 px-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:opacity-90";
+        } else {
+          btn.className = "py-1.5 px-2 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold hover:bg-slate-700";
+        }
+      });
+    }
+
+    function openPostModal(suggestedTag = '') {
+      document.getElementById('modal-post').classList.remove('hidden');
+      document.getElementById('post-text').focus();
+      if (suggestedTag) selectPostCategory(suggestedTag.charAt(0).toUpperCase() + suggestedTag.slice(1));
+    }
+
+    function closePostModal() {
+      document.getElementById('modal-post').classList.add('hidden');
+      document.getElementById('post-text').value = "";
+    }
+
+    function openEventModal() { document.getElementById('modal-event').classList.remove('hidden'); }
+    function closeEventModal() {
+      document.getElementById('modal-event').classList.add('hidden');
+      document.getElementById('event-title').value = "";
+      document.getElementById('event-date').value = "";
+      document.getElementById('event-location').value = "";
+      document.getElementById('event-desc').value = "";
+    }
+
+    function openCuanModal() { document.getElementById('modal-cuan').classList.remove('hidden'); }
+    function closeCuanModal() {
+      document.getElementById('modal-cuan').classList.add('hidden');
+      document.getElementById('cuan-form').reset();
+    }
+
+    // Ekspor fungsi agar modal-modal pendukung UKM/Transaksi bisa ditutup
+    window.closeTransactionModal = function() {
+      document.getElementById('modal-transaction').classList.add('hidden');
+      document.getElementById('transaction-form').reset();
+    };
+    window.closePollModal = function() {
+      document.getElementById('modal-poll').classList.add('hidden');
+      document.getElementById('poll-question').value = "";
+      document.getElementById('poll-opt1').value = "";
+      document.getElementById('poll-opt2').value = "";
+    };
+
+    function openTransactionModal() { document.getElementById('modal-transaction').classList.remove('hidden'); }
+    function openPollModal() { document.getElementById('modal-poll').classList.remove('hidden'); }
+
+    function formatRupiah(number) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+  </script>
+</body>
+</html>
