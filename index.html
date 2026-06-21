@@ -37,14 +37,15 @@
   <!-- Mobile Wrapper Simulation for Desktop, Fullscreen on Mobile -->
   <div class="w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300">
     
-    <!-- Status Koneksi Database Global (TITIK HIJAU INDIKATOR) -->
-    <div class="absolute top-3 right-3 z-[100] flex items-center gap-1.5 bg-slate-950/90 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-full text-[9px] font-bold">
+    <!-- Status Koneksi Database Global (TITIK INDIKATOR & TOMBOL SETELAN) -->
+    <button onclick="openConfigModal()" class="absolute top-3 right-3 z-[100] flex items-center gap-1.5 bg-slate-950/90 hover:bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[9px] font-bold transition-all active:scale-95" title="Klik untuk atur Firebase">
       <span id="db-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-      <span id="db-indicator-text" class="text-amber-500">Menghubungkan...</span>
-    </div>
+      <span id="db-indicator-text" class="text-amber-500">Offline / Demo</span>
+      <i class="fa-solid fa-gear text-[8px] text-slate-500 ml-0.5"></i>
+    </button>
 
     <!-- ==================== SCREEN 1: LOGIN ==================== -->
-    <div id="login-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-5 overflow-y-auto transition-all duration-500">
+    <div id="login-screen" class="absolute inset-0 z-40 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-5 overflow-y-auto transition-all duration-500">
       <div class="flex flex-col items-center justify-center flex-grow py-4">
         
         <!-- Logo Resmi KARTAR 15 Pondok Kelapa -->
@@ -171,7 +172,7 @@
 
 
     <!-- ==================== SCREEN 2: REGISTRATION ==================== -->
-    <div id="register-screen" class="hidden absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
+    <div id="register-screen" class="hidden absolute inset-0 z-40 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
       <div class="flex flex-col items-center justify-center flex-grow py-4">
         <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg border border-slate-800 mb-3 overflow-hidden">
           <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-1">
@@ -245,7 +246,7 @@
     <div id="app-screen" class="hidden flex flex-col h-full w-full bg-slate-950 text-slate-100">
       
       <!-- TOP BAR -->
-      <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-40">
+      <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-30">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-slate-800">
             <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-0.5">
@@ -660,6 +661,27 @@
       </div>
     </div>
 
+    <!-- ==================== MODAL SETELAN CONFIG FIREBASE (LIVE SETTINGS) ==================== -->
+    <div id="modal-config" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md z-[200] flex items-center justify-center p-5">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest"><i class="fa-solid fa-network-wired mr-2"></i>Atur Kredensial Firebase</h3>
+          <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          Tempelkan (Paste) konfigurasi SDK Web Firebase Anda di bawah ini agar aplikasi ini dapat terhubung ke database cloud nyata Anda di Vercel:
+        </p>
+
+        <textarea id="firebase-config-input" rows="8" placeholder='{\n  "apiKey": "AIzaSy...",\n  "authDomain": "...",\n  "projectId": "...",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}' class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-[10px] font-mono text-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+
+        <div class="flex items-center justify-between gap-2 pt-2">
+          <button onclick="resetConfigToDefault()" class="flex-1 py-2 border border-slate-800 hover:bg-slate-800 text-[10px] font-bold text-rose-400 rounded-xl transition-all">Reset Default</button>
+          <button onclick="saveFirebaseConfig()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white rounded-xl transition-all">Simpan & Sambungkan</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- SINGLE IMMERSIVE MODULE SCRIPT (CONSOLIDATED & GLOBALLY BOUND TO PREVENT ALL UI CRASHES) -->
@@ -669,17 +691,31 @@
     import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // --- 1. FIREBASE DYNAMIC CONFIGURATION & INTEGRATION ---
-    // Menggunakan konfigurasi runtime global __firebase_config jika tersedia
-    const firebaseConfig = typeof __firebase_config !== 'undefined'
-      ? JSON.parse(__firebase_config)
-      : {
-          apiKey: "",
-          authDomain: "",
-          projectId: "",
-          storageBucket: "",
-          messagingSenderId: "",
-          appId: ""
-        };
+    // Kami memeriksa apakah pengguna telah menyimpan konfigurasi mereka di localStorage, 
+    // jika belum kami gunakan default preview environment
+    const storedConfigStr = localStorage.getItem('kartar15_firebase_config');
+    let firebaseConfig = null;
+
+    if (storedConfigStr) {
+      try {
+        firebaseConfig = JSON.parse(storedConfigStr);
+      } catch (err) {
+        console.error("Gagal mengurai konfigurasi tersimpan.");
+      }
+    }
+
+    if (!firebaseConfig) {
+      firebaseConfig = typeof __firebase_config !== 'undefined'
+        ? JSON.parse(__firebase_config)
+        : {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+          };
+    }
 
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'kartar15-rw15-prod';
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -722,6 +758,12 @@
 
     // --- 3. LIFECYCLE INITIALIZER ---
     window.addEventListener('load', async () => {
+      // Isikan input textarea dengan config saat ini demi kemudahan salin tempel
+      const configTextarea = document.getElementById('firebase-config-input');
+      if (configTextarea) {
+        configTextarea.value = JSON.stringify(firebaseConfig, null, 2);
+      }
+
       updateConnectionIndicator(false, "Menghubungkan...");
       if (firebaseAvailable) {
         try {
@@ -734,7 +776,7 @@
           
           onAuthStateChanged(auth, async (user) => {
             if (user) {
-              updateConnectionIndicator(true, "Terhubung ke Firebase");
+              updateConnectionIndicator(true, "Terhubung (Firebase)");
               await checkAndInitializeDefaultData();
               setupRealTimeSync();
             } else {
@@ -743,12 +785,12 @@
             }
           });
         } catch (err) {
-          console.error("Gagal melakukan handshake dengan Firebase Auth:", err);
-          updateConnectionIndicator(false, "Database Lokal (Auth Error)");
+          console.error("Gagal melakukan jabat tangan dengan Firebase Auth:", err);
+          updateConnectionIndicator(false, "Offline / Demo");
           loadMockDatabase();
         }
       } else {
-        updateConnectionIndicator(false, "Database Lokal (Mode Demo)");
+        updateConnectionIndicator(false, "Offline / Demo");
         loadMockDatabase();
       }
     });
@@ -867,19 +909,18 @@
         }
         renderMemberManagement();
       }, (err) => {
-        console.error("Sinkronisasi anggota error:", err);
+        console.error("Sinkronisasi anggota terhambat:", err);
       });
 
       // Sinkronisasi Postingan Pojok Warga
       onSnapshot(getPublicCollectionRef('posts'), (snap) => {
         const p = [];
         snap.forEach(doc => p.push({ fireId: doc.id, ...doc.data() }));
-        // Lakukan pengurutan di memori (Rule 2)
         p.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localPosts = p;
         renderFeed();
       }, (err) => {
-        console.error("Sinkronisasi pojok warga error:", err);
+        console.error("Sinkronisasi pojok warga terhambat:", err);
       });
 
       // Sinkronisasi Agenda Kegiatan
@@ -890,7 +931,7 @@
         localEvents = e;
         renderEvents();
       }, (err) => {
-        console.error("Sinkronisasi agenda error:", err);
+        console.error("Sinkronisasi agenda terhambat:", err);
       });
 
       // Sinkronisasi Ide Cuan & Pemberdayaan
@@ -901,7 +942,7 @@
         localCuanIdeas = c;
         renderCuanIdeas();
       }, (err) => {
-        console.error("Sinkronisasi Ide Cuan error:", err);
+        console.error("Sinkronisasi Ide Cuan terhambat:", err);
       });
 
       // Sinkronisasi Mutasi Kas
@@ -912,7 +953,7 @@
         localTransactions = t;
         renderFinance();
       }, (err) => {
-        console.error("Sinkronisasi laporan kas keuangan error:", err);
+        console.error("Sinkronisasi laporan kas terhambat:", err);
       });
 
       // Sinkronisasi Polling
@@ -923,7 +964,7 @@
         localPolls = pl;
         renderPolls();
       }, (err) => {
-        console.error("Sinkronisasi polling error:", err);
+        console.error("Sinkronisasi polling terhambat:", err);
       });
     }
 
@@ -1036,7 +1077,7 @@
         } catch (err) {
           console.error("Gagal menyimpan ke Firestore:", err);
           localUsers.push(newUser);
-          window.showToast("Database sibuk, pendaftaran sukses secara lokal.");
+          window.showToast("Koneksi sibuk, pendaftaran sukses secara lokal.");
         }
       } else {
         localUsers.push(newUser);
@@ -1859,6 +1900,29 @@
         }
       }
     }
+
+    // --- FITUR SAVE CONFIG FIREBASE INTERAKTIF ---
+    window.saveFirebaseConfig = function() {
+      const inputVal = document.getElementById('firebase-config-input').value.trim();
+      try {
+        const parsed = JSON.parse(inputVal);
+        if (!parsed.apiKey || !parsed.projectId) {
+          alert("Konfigurasi Firebase tampaknya tidak valid. Pastikan ada 'apiKey' dan 'projectId'!");
+          return;
+        }
+        localStorage.setItem('kartar15_firebase_config', JSON.stringify(parsed));
+        alert("Konfigurasi disimpan! Aplikasi akan memuat ulang untuk terhubung.");
+        window.location.reload();
+      } catch (err) {
+        alert("Gagal membaca format JSON. Silakan periksa kembali tanda koma dan tanda petik ganda Anda.");
+      }
+    };
+
+    window.resetConfigToDefault = function() {
+      localStorage.removeItem('kartar15_firebase_config');
+      alert("Kembali ke konfigurasi default preview platform. Aplikasi dimuat ulang.");
+      window.location.reload();
+    };
   </script>
 
   <script>
@@ -1966,27 +2030,32 @@
       document.getElementById('event-desc').value = "";
     }
 
-    // Modal Ide Cuan
     function openCuanModal() { document.getElementById('modal-cuan').classList.remove('hidden'); }
     function closeCuanModal() {
       document.getElementById('modal-cuan').classList.add('hidden');
       document.getElementById('cuan-form').reset();
     }
 
-    // Modal Transaksi Kas
     function openTransactionModal() { document.getElementById('modal-transaction').classList.remove('hidden'); }
     function closeTransactionModal() {
       document.getElementById('modal-transaction').classList.add('hidden');
       document.getElementById('transaction-form').reset();
     }
 
-    // Modal Polling Aspirasi
     function openPollModal() { document.getElementById('modal-poll').classList.remove('hidden'); }
     function closePollModal() {
       document.getElementById('modal-poll').classList.add('hidden');
       document.getElementById('poll-question').value = "";
       document.getElementById('poll-opt1').value = "";
       document.getElementById('poll-opt2').value = "";
+    }
+
+    // Modal Atur Firebase Config
+    function openConfigModal() {
+      document.getElementById('modal-config').classList.remove('hidden');
+    }
+    function closeConfigModal() {
+      document.getElementById('modal-config').classList.add('hidden');
     }
 
     function shareKartaCard() {
@@ -2055,7 +2124,7 @@
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
     }
 
-    // Pasang handler secara eksplisit ke scope global window
+    // Attach all handlers explicitly to window
     window.handleLogoError = handleLogoError;
     window.togglePasswordVisibility = togglePasswordVisibility;
     window.switchToScreen = switchToScreen;
@@ -2073,6 +2142,8 @@
     window.closeTransactionModal = closeTransactionModal;
     window.openPollModal = openPollModal;
     window.closePollModal = closePollModal;
+    window.openConfigModal = openConfigModal;
+    window.closeConfigModal = closeConfigModal;
     window.shareKartaCard = shareKartaCard;
     window.renderMenuSubTabContents = renderMenuSubTabContents;
     window.formatRupiah = formatRupiah;
