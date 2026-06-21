@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KARTA15 - Karang Taruna RW 15</title>
+  <title>KARTAR 15 - Karang Taruna RW 15 Pondok Kelapa</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -12,81 +12,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Firebase SDK Modules -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // --- SINKRONISASI KONFIGURASI AMAN (VERCEL ENV & CANVAS RUNTIME) ---
-    // Di Vercel, nilai ini akan digantikan secara dinamis lewat Environment Variables yang Anda pasang.
-    // Jika tidak terdeteksi, sistem akan mencoba membaca dari Canvas fallback (__firebase_config).
-    const firebaseConfig = {
-      apiKey: "INSERT_VERCEL_API_KEY",
-      authDomain: "INSERT_VERCEL_AUTH_DOMAIN",
-      projectId: "INSERT_VERCEL_PROJECT_ID",
-      storageBucket: "INSERT_VERCEL_STORAGE_BUCKET",
-      messagingSenderId: "INSERT_VERCEL_MESSAGING_SENDER_ID",
-      appId: "INSERT_VERCEL_APP_ID"
-    };
-
-    // Deteksi jika berjalan di Vercel (Placeholder diganti) atau di Canvas
-    const isVotedOnVercel = firebaseConfig.apiKey !== "INSERT_VERCEL_API_KEY" && firebaseConfig.apiKey !== "";
-    
-    let finalConfig = firebaseConfig;
-
-    if (!isVotedOnVercel && typeof __firebase_config !== 'undefined') {
-      finalConfig = JSON.parse(__firebase_config);
-    }
-
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'kartar15-rw15-production';
-
-    // Inisialisasi Firebase secara aman
-    const app = initializeApp(finalConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Ekspor ke window global agar script interaksi dapat membaca database
-    window.db = db;
-    window.auth = auth;
-    window.appId = appId;
-    window.firestoreInited = true;
-    
-    // Autentikasi otomatis sebelum query (Rule 3)
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.error("Autentikasi Firebase gagal:", err);
-      }
-    };
-    initAuth();
-  </script>
-
-  <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
-    }
-  </style>
 </head>
 <body class="h-full flex justify-center items-center overflow-hidden bg-slate-900">
 
@@ -97,6 +22,289 @@
     <div id="login-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
       <div class="flex flex-col items-center justify-center flex-grow py-4">
         
+        <!-- Logo Resmi KARTAR 15 Pondok Kelapa -->
+        <div id="logo-container" class="relative mb-3 flex items-center justify-center">
+          <img id="app-logo-img" src="1000146609.png" onerror="handleLogoError()" class="w-24 h-24 object-contain rounded-full border border-slate-700 bg-white/5 p-1 shadow-xl shadow-indigo-500/10" alt="Logo Karang Taruna RW 15 Pondok Kelapa">
+          <div id="logo-fallback" class="hidden w-24 h-24 bg-gradient-to-tr from-indigo-600 to-rose-500 rounded-full items-center justify-center text-white border border-indigo-400">
+            <i class="fa-solid fa-people-group text-3xl"></i>
+          </div>
+        </div>
+
+        <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-rose-400 bg-clip-text text-transparent">KARTAR 15</h1>
+        <p class="text-slate-400 text-xs mt-1 text-center font-medium">Karang Taruna RW 15 Pondok Kelapa</p>
+
+        <!-- ==================== PROMOTIONAL BANNER ==================== -->
+        <div class="w-full mt-5 bg-gradient-to-tr from-indigo-900 via-purple-900 to-rose-900 rounded-2xl p-5 border border-indigo-500/20 shadow-xl relative overflow-hidden">
+          <div class="absolute -right-10 -top-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl"></div>
+          
+          <span class="bg-rose-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">REKRUTMEN ANGGOTA BARU</span>
+          <h2 class="text-xl font-black text-white mt-2 leading-tight">JANGAN CUMA JADI PENONTON!</h2>
+          <p class="text-[11px] text-slate-200 mt-1.5 leading-relaxed">Saatnya bersuara, berkarya, dan seru-seruan bareng pemuda RW 15 di Karang Taruna KARTAR 15!</p>
+          
+          <!-- Benefit Badges Grid -->
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Anti Gabut & Seru</span>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Relasi & Koneksi</span>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Support Usaha Lokal</span>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm p-2 rounded-xl flex items-center gap-2 border border-white/5">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+              <span class="text-[10px] font-semibold text-slate-100">Pengaruh Nyata</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GARANSI BEBAS OSPEK CARD -->
+        <div class="w-full mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-start gap-3 shadow-md">
+          <div class="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl flex items-center justify-center">
+            <i class="fa-solid fa-hand-holding-heart text-md"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-white">Garansi Tanpa Ribet & Bebas Ospek</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5 leading-relaxed">Murni tempat kita berkembang bersama. Gak ada senioritas, gak ada tekanan birokrasi kaku. Semua punya hak bersuara yang sama!</p>
+          </div>
+        </div>
+
+        <!-- Form Card (Login Menu) -->
+        <div class="w-full mt-4 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-800 shadow-xl">
+          <h2 class="text-md font-bold text-white mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-right-to-bracket text-indigo-400"></i> Masuk Aplikasi
+          </h2>
+          
+          <!-- Username / Phone Input -->
+          <div class="mb-3">
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">No. WhatsApp / Nama Pengguna</label>
+            <input type="text" id="login-identifier" placeholder="Contoh: 082111111111 atau Fajar" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white transition-all">
+          </div>
+
+          <!-- Password Input -->
+          <div class="mb-4 relative">
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Kata Sandi</label>
+              <span class="text-[10px] text-indigo-400 cursor-pointer hover:underline" id="btn-forgot-password">Info Sandi</span>
+            </div>
+            <div class="relative">
+              <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white transition-all">
+              <button id="btn-toggle-login-pass" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                <i class="fa-solid fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Login Button -->
+          <button id="btn-login-submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition-all transform active:scale-95">
+            Masuk <i class="fa-solid fa-arrow-right-to-bracket ml-1.5"></i>
+          </button>
+        </div>
+
+        <!-- Go To Register Card -->
+        <div class="w-full mt-4 bg-slate-900/40 p-4 rounded-xl border border-dashed border-slate-800 text-center">
+          <p class="text-xs text-slate-400">Belum terdaftar sebagai anggota RW 15?</p>
+          <button id="btn-go-to-register" class="mt-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
+            Buat Akun Anggota Baru <i class="fa-solid fa-user-plus ml-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Test Accounts Info for convenience -->
+      <div class="bg-indigo-950/30 border border-indigo-500/10 p-3 rounded-xl mb-4">
+        <p class="text-[10px] text-indigo-300 font-bold mb-1.5 text-center"><i class="fa-solid fa-circle-info"></i> Akun Demo bawaan (Tersinkron):</p>
+        <div class="grid grid-cols-2 gap-2 text-[9px] text-slate-400">
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-red-400">Ketua (Admin):</span><br>
+            WA: <span class="text-slate-200">082111111111</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-purple-400">Wakil Ketua:</span><br>
+            WA: <span class="text-slate-200">082444444444</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-amber-400">Bendahara (Kas):</span><br>
+            WA: <span class="text-slate-200">082333333333</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-emerald-400">Anggota Biasa:</span><br>
+            WA: <span class="text-slate-200">082222222222</span>
+          </div>
+        </div>
+        <p class="text-[8px] text-slate-500 mt-1.5 text-center font-semibold">Sandi semua akun uji coba: <span class="text-slate-300">123456</span></p>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="text-center">
+        <p class="text-[10px] text-slate-500">Muda, Kreatif, Berdampak. © 2026 KARTAR 15</p>
+      </div>
+    </div>
+
+
+    <!-- ==================== SCREEN 2: REGISTRATION ==================== -->
+    <div id="register-screen" class="hidden absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
+      <div class="flex flex-col items-center justify-center flex-grow py-4">
+        <!-- Circular Frame for logo in register screen -->
+        <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg border border-slate-800 mb-3 overflow-hidden">
+          <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-1">
+        </div>
+        <h1 class="text-2xl font-extrabold text-white">Daftar Anggota KARTAR 15</h1>
+        <p class="text-slate-400 text-xs mt-1 text-center">Gabung bersama ratusan pemuda lainnya di lingkungan RW 15!</p>
+
+        <!-- Register Card -->
+        <form id="register-form" class="w-full mt-5 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3.5">
+          
+          <!-- Name -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Nama Lengkap</label>
+            <input type="text" id="reg-name" required placeholder="Contoh: Rian Anggara" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+          </div>
+
+          <!-- WhatsApp -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">No. WhatsApp aktif</label>
+            <input type="tel" id="reg-phone" required placeholder="Contoh: 08xxxxxxxxxx" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+          </div>
+
+          <!-- RT Selector -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Asal RT</label>
+              <select id="reg-rt" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+                <option value="RT 01">RT 01</option>
+                <option value="RT 02">RT 02</option>
+                <option value="RT 03">RT 03</option>
+                <option value="RT 04">RT 04</option>
+                <option value="RT 05">RT 05</option>
+                <option value="RT 06">RT 06</option>
+                <option value="RT 07">RT 07</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Hobi / Fokus</label>
+              <input type="text" id="reg-hobby" required placeholder="Futsal, MLBB, dll" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Buat Kata Sandi</label>
+            <div class="relative">
+              <input type="password" id="reg-password" required placeholder="Minimal 6 karakter" minlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all">
+              <button type="button" id="btn-toggle-reg-pass" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                <i class="fa-solid fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Promo Box Info -->
+          <div class="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-xl flex items-center gap-2.5">
+            <i class="fa-solid fa-gift text-sm text-indigo-400"></i>
+            <span class="text-[9px] text-slate-300 leading-tight">Dapatkan E-Card Karta Virtual resmi setelah berhasil mendaftar!</span>
+          </div>
+
+          <!-- Register Action Button -->
+          <button type="submit" id="btn-register-submit" class="w-full bg-gradient-to-r from-rose-500 to-indigo-600 hover:from-rose-400 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-lg transition-all transform active:scale-95">
+            Daftar Sekarang <i class="fa-solid fa-arrow-right-to-bracket ml-1.5"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Go Back to Login -->
+      <div class="text-center pb-2">
+        <button id="btn-go-to-login" class="text-xs text-slate-400 hover:text-white transition-colors">
+          Sudah punya akun? <span class="font-bold text-indigo-400 underline ml-1">Masuk di sini</span>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ==================== MAIN APPLICATION CONTAINER ==================== -->
+    <div id="app-screen" class="hidden flex flex-col h-full w-full bg-slate-950">
+      
+      <!-- TOP BAR -->
+      <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-40">
+        <div class="flex items-center gap-2">
+          <!-- Circular Frame for logo in app header -->
+          <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-slate-800">
+            <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-0.5">
+          </div>
+          <div>
+            <span class="font-extrabold text-md bg-gradient-to-r from-indigo-400 to-rose-400 bg-clip-text text-transparent">KARTAR 15</span>
+            <span id="user-badge" class="block text-[10px] text-slate-400 font-medium leading-none mt-0.5">Memuat...</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Role Indicator Info -->
+          <div id="role-indicator" class="text-[10px] font-bold px-2 py-1 rounded-full border bg-emerald-950 border-emerald-500 text-emerald-400 flex items-center gap-1">
+            <i class="fa-solid fa-circle-user"></i> <span id="role-text">Anggota</span>
+          </div>
+          
+          <!-- Logout Button -->
+          <button id="btn-app-logout" class="text-slate-400 hover:text-rose-400 p-2 text-sm transition-colors" title="Keluar">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- NOTIFICATION BANNER -->
+      <div id="app-toast" class="hidden bg-indigo-600 text-white text-xs px-4 py-2 flex items-center justify-between border-b border-indigo-500 animate-slide-down">
+        <span id="toast-message">Pesan notifikasi di sini...</span>
+        <button id="btn-close-toast" class="text-white hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- MAIN SCROLLABLE CONTENT AREA -->
+      <main class="flex-grow overflow-y-auto pb-24" id="main-content">
+        
+        <!-- SECTION 1: POJOK WARGA (FEED) -->
+        <section id="section-feed" class="p-4 space-y-4">
+          <!-- Create Post Trigger Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-9 h-9 bg-indigo-500 text-white font-bold rounded-full flex items-center justify-center text-sm" id="avatar-placeholder">
+                U
+              </div>
+              <input type="text" id="btn-open-post-text" readonly placeholder="Ada info seru apa hari ini di RW 15? Posting yuk..." class="flex-grow bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-full px-4 py-2.5 text-xs text-slate-400 cursor-pointer focus:outline-none transition-colors">
+            </div>
+            <div class="flex items-center justify-between border-t border-slate-800 pt-2.5 text-slate-400 text-xs">
+              <button id="btn-post-kegiatan" class="flex items-center gap-2 hover:text-indigo-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-calendar-check text-indigo-400"></i> Info Kegiatan</button>
+              <button id="btn-post-mabar" class="flex items-center gap-2 hover:text-rose-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-gamepad text-rose-400"></i> Mabar Hobi</button>
+              <button id="btn-post-promosi" class="flex items-center gap-2 hover:text-amber-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-store text-amber-400"></i> Promosi UKM</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Feed Container -->
+          <div id="feed-list" class="space-y-4">
+            <!-- Feed items will be inserted dynamically -->
+          </div>
+        </section>
+
+        <!-- SECTION 2: AGENDA (EVENT HUB) -->
+        <section id="section-agenda" class="hidden p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-white">Event & Kegiatan</h2>
+              <p class="text-xs text-slate-400">Yuk ikutan dan berkontribusi langsung di lingkungan!</p>
+            </div>
+            <!-- Pengurus/Wakil/Ketua Only Event Button -->
+            <button id="btn-create-event" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+              <i class="fa-solid fa-plus"></i> Tambah Event
+            </button>
+          </div>
+
+          <!-- Agenda List Container -->
+          <div id="event-list" class="space-y-4">
+            <!-- Event items will be inserted dynamically -->
+          </div>
+        </section>
+
+        <!-- SECTION 3: IDE CUAN (RUANG DISKUSI IDE PROGRAM/USAHA) -->
+        <section id="section-cuan" class="hidden p-4         
         <!-- Logo Baru dari Gambar 1000146609.png -->
         <div id="logo-container" class="relative mb-3 flex items-center justify-center">
           <img id="app-logo-img" src="1000146609.png" onerror="handleLogoError()" class="w-24 h-24 object-contain rounded-full border border-slate-700 bg-white/5 p-1 shadow-xl shadow-indigo-500/10" alt="Logo Karang Taruna RW 15 Pondok Kelapa">
