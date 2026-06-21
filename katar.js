@@ -1,5 +1,5 @@
 export default function handler(request, response) {
-  // Hanya ijinkan method GET
+  // Hanya izinkan method GET
   if (request.method !== 'GET') {
     return response.status(405).json({ error: 'Method tidak diizinkan' });
   }
