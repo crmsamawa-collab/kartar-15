@@ -1,4 +1,3 @@
-javascript
 export default function handler(request, response) {
   // Hanya ijinkan method GET
   if (request.method !== 'GET') {
