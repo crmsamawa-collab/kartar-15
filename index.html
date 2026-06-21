@@ -37,15 +37,15 @@
   <!-- Mobile Wrapper Simulation for Desktop, Fullscreen on Mobile -->
   <div class="w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300">
     
-    <!-- Status Koneksi Database Global (TITIK INDIKATOR & TOMBOL SETELAN) -->
-    <button onclick="openConfigModal()" class="absolute top-3 right-3 z-[100] flex items-center gap-1.5 bg-slate-950/90 hover:bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[9px] font-bold transition-all active:scale-95" title="Klik untuk atur Firebase">
+    <!-- Status Koneksi Database Global (TITIK HIJAU STATUS KONEKSI) -->
+    <button onclick="openConfigModal()" class="absolute top-3 right-3 z-[100] flex items-center gap-1.5 bg-slate-950/90 hover:bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[9px] font-bold transition-all active:scale-95" title="Klik untuk mengkonfigurasi database privat">
       <span id="db-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-      <span id="db-indicator-text" class="text-amber-500">Offline / Demo</span>
-      <i class="fa-solid fa-gear text-[8px] text-slate-500 ml-0.5"></i>
+      <span id="db-indicator-text" class="text-amber-500">Menghubungkan...</span>
+      <i class="fa-solid fa-gears text-[8px] text-slate-500 ml-0.5"></i>
     </button>
 
     <!-- ==================== SCREEN 1: LOGIN ==================== -->
-    <div id="login-screen" class="absolute inset-0 z-40 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-5 overflow-y-auto transition-all duration-500">
+    <div id="login-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-5 overflow-y-auto transition-all duration-500">
       <div class="flex flex-col items-center justify-center flex-grow py-4">
         
         <!-- Logo Resmi KARTAR 15 Pondok Kelapa -->
@@ -108,7 +108,7 @@
           <!-- Username Input -->
           <div class="mb-3">
             <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">No. WhatsApp / Nama Pengguna</label>
-            <input type="text" id="login-identifier" placeholder="Contoh: 082111111111 atau Fajar Pratama" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white transition-all">
+            <input type="text" id="login-identifier" placeholder="Contoh: 082111111111 atau Fajar" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white transition-all">
           </div>
 
           <!-- Password Input -->
@@ -172,7 +172,7 @@
 
 
     <!-- ==================== SCREEN 2: REGISTRATION ==================== -->
-    <div id="register-screen" class="hidden absolute inset-0 z-40 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
+    <div id="register-screen" class="hidden absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
       <div class="flex flex-col items-center justify-center flex-grow py-4">
         <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg border border-slate-800 mb-3 overflow-hidden">
           <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-1">
@@ -243,10 +243,10 @@
 
 
     <!-- ==================== MAIN APPLICATION CONTAINER ==================== -->
-    <div id="app-screen" class="hidden flex flex-col h-full w-full bg-slate-950 text-slate-100">
+    <div id="app-screen" class="hidden flex flex-col h-full w-full bg-slate-950">
       
       <!-- TOP BAR -->
-      <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-30">
+      <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-40">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-slate-800">
             <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-0.5">
@@ -373,7 +373,7 @@
 
           <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
             <span class="font-bold uppercase tracking-wider text-[10px]">Riwayat Mutasi Dana</span>
-            <span>Update: Real-Time Cloud</span>
+            <span id="finance-update-text">Update: Hari ini</span>
           </div>
 
           <div id="transaction-list" class="space-y-2.5"></div>
@@ -661,23 +661,23 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL SETELAN CONFIG FIREBASE (LIVE SETTINGS) ==================== -->
-    <div id="modal-config" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md z-[200] flex items-center justify-center p-5">
+    <!-- ==================== MODAL: CONFIGURATION SETTINGS (MENGAMANKAN KREDENSIAL) ==================== -->
+    <div id="modal-config" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md z-[200] flex items-center justify-center p-5">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-5 space-y-4">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest"><i class="fa-solid fa-network-wired mr-2"></i>Atur Kredensial Firebase</h3>
+          <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest"><i class="fa-solid fa-user-shield mr-2"></i>Setelan Kredensial Firebase</h3>
           <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
         <p class="text-[10px] text-slate-400 leading-relaxed">
-          Tempelkan (Paste) konfigurasi SDK Web Firebase Anda di bawah ini agar aplikasi ini dapat terhubung ke database cloud nyata Anda di Vercel:
+          Kredensial disimpan privat di peramban ini atau disuplai dinamis oleh Vercel. Tempel konfigurasi Firebase SDK Anda di bawah jika ingin mengaktifkan database awan pribadi secara lokal:
         </p>
 
-        <textarea id="firebase-config-input" rows="8" placeholder='{\n  "apiKey": "AIzaSy...",\n  "authDomain": "...",\n  "projectId": "...",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}' class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-[10px] font-mono text-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+        <textarea id="firebase-config-textarea" rows="7" placeholder='{\n  "apiKey": "AIzaSy...",\n  "authDomain": "...",\n  "projectId": "...",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}' class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-[10px] font-mono text-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
 
-        <div class="flex items-center justify-between gap-2 pt-2">
+        <div class="flex gap-2">
           <button onclick="resetConfigToDefault()" class="flex-1 py-2 border border-slate-800 hover:bg-slate-800 text-[10px] font-bold text-rose-400 rounded-xl transition-all">Reset Default</button>
-          <button onclick="saveFirebaseConfig()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white rounded-xl transition-all">Simpan & Sambungkan</button>
+          <button onclick="saveFirebaseConfig()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white rounded-xl transition-all font-sans">Simpan & Mulai</button>
         </div>
       </div>
     </div>
@@ -690,52 +690,79 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- 1. FIREBASE DYNAMIC CONFIGURATION & INTEGRATION ---
-    // Kami memeriksa apakah pengguna telah menyimpan konfigurasi mereka di localStorage, 
-    // jika belum kami gunakan default preview environment
-    const storedConfigStr = localStorage.getItem('kartar15_firebase_config');
+    // --- 1. FIREBASE CONFIGURATION LOAD (SECURE PRIVACY PATTERN) ---
+    // Mencari kunci aman dari lokal, Vercel API, atau default platform preview
     let firebaseConfig = null;
-
-    if (storedConfigStr) {
+    
+    // Periksa apakah ada konfigurasi kustom yang disimpan privat di browser
+    const storedConfig = localStorage.getItem('kartar15_secure_config');
+    if (storedConfig) {
       try {
-        firebaseConfig = JSON.parse(storedConfigStr);
+        firebaseConfig = JSON.parse(storedConfig);
       } catch (err) {
-        console.error("Gagal mengurai konfigurasi tersimpan.");
+        console.warn("Kredensial lokal rusak.");
       }
     }
 
+    // Jika belum ada di penyimpanan lokal, cek apakah disuplai dari runtime platform (__firebase_config)
     if (!firebaseConfig) {
-      firebaseConfig = typeof __firebase_config !== 'undefined'
-        ? JSON.parse(__firebase_config)
-        : {
-            apiKey: "",
-            authDomain: "",
-            projectId: "",
-            storageBucket: "",
-            messagingSenderId: "",
-            appId: ""
-          };
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try {
+          firebaseConfig = JSON.parse(__firebase_config);
+        } catch (err) {
+          console.warn("Gagal parsing __firebase_config.");
+        }
+      }
     }
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'kartar15-rw15-prod';
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    // Jika masih kosong, coba tarik dari endpoint API rahasia serverless Vercel
+    if (!firebaseConfig || !firebaseConfig.apiKey) {
+      try {
+        const secureEnvFetch = await fetch('/api/config');
+        if (secureEnvFetch.ok) {
+          const fetchedConfig = await secureEnvFetch.json();
+          if (fetchedConfig && fetchedConfig.apiKey) {
+            firebaseConfig = fetchedConfig;
+            console.log("Konfigurasi privat berhasil ditarik dari Vercel serverless function.");
+          }
+        }
+      } catch (err) {
+        console.log("Rute API /api/config belum dikonfigurasi.");
+      }
+    }
+
+    // Fallback Dummy jika semua cara di atas kosong (aplikasi tetap berjalan mulus luring)
+    if (!firebaseConfig) {
+      firebaseConfig = {
+        apiKey: "", 
+        authDomain: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: ""
+      };
+    }
+
+    const isMockMode = !firebaseConfig.apiKey || firebaseConfig.apiKey === "" || firebaseConfig.apiKey.includes("INSERT_");
 
     let app, auth, db;
+    let appId = typeof __app_id !== 'undefined' ? __app_id : 'kartar15-rw15-production';
+    let initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     let firebaseAvailable = false;
 
-    // Deteksi validitas konfigurasi Firebase
-    if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "") {
-      try {
+    // Inisialisasi Firebase Aman
+    try {
+      if (!isMockMode) {
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
         firebaseAvailable = true;
-      } catch (e) {
-        console.warn("Gagal inisialisasi Firebase SDK. Berpindah ke simulasi database luring.", e);
       }
+    } catch (e) {
+      console.warn("Firebase tidak tersedia, aplikasi dijalankan dalam simulasi aman.");
     }
 
-    // --- 2. LOCAL DATA STATE (FALLBACK) ---
+    // --- 2. LOCAL DATA STATE ---
     const defaultLocalUsers = [
       { name: "Fajar Pratama", phone: "082111111111", password: "123456", rt: "RT 02", role: "Ketua", hobby: "Futsal & Memimpin", joinDate: "05 Jan 2026", memberId: "K15-2026-112" },
       { name: "Bagas Saputra", phone: "082444444444", password: "123456", rt: "RT 04", role: "Wakil Ketua", hobby: "Mobile Legends", joinDate: "15 Feb 2026", memberId: "K15-2026-302" },
@@ -752,19 +779,19 @@
     let currentUser = null;
     let selectedPostCategory = "Umum";
 
-    // --- RULE 1 - Strict Paths ---
     const getPublicCollectionRef = (collectionName) => collection(db, 'artifacts', appId, 'public', 'data', collectionName);
     const getPublicDocRef = (collectionName, docId) => doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
 
-    // --- 3. LIFECYCLE INITIALIZER ---
+    // --- 3. LIFECYCLE INITIALIZER & AUTH ---
     window.addEventListener('load', async () => {
-      // Isikan input textarea dengan config saat ini demi kemudahan salin tempel
-      const configTextarea = document.getElementById('firebase-config-input');
-      if (configTextarea) {
-        configTextarea.value = JSON.stringify(firebaseConfig, null, 2);
+      // Isikan data ke textarea setelan untuk kenyamanan pengguna
+      const textarea = document.getElementById('firebase-config-textarea');
+      if (textarea) {
+        textarea.value = JSON.stringify(firebaseConfig, null, 2);
       }
 
       updateConnectionIndicator(false, "Menghubungkan...");
+
       if (firebaseAvailable) {
         try {
           // --- RULE 3 - Auth Sebelum Query ---
@@ -773,19 +800,20 @@
           } else {
             await signInAnonymously(auth);
           }
-          
+
           onAuthStateChanged(auth, async (user) => {
             if (user) {
               updateConnectionIndicator(true, "Terhubung (Firebase)");
+              document.getElementById('finance-update-text').innerText = "Update: Real-Time Cloud";
               await checkAndInitializeDefaultData();
               setupRealTimeSync();
             } else {
-              updateConnectionIndicator(false, "Sesi Auth Gagal");
+              updateConnectionIndicator(false, "Offline / Demo");
               loadMockDatabase();
             }
           });
         } catch (err) {
-          console.error("Gagal melakukan jabat tangan dengan Firebase Auth:", err);
+          console.error("Gagal melakukan handshake dengan Firebase:", err);
           updateConnectionIndicator(false, "Offline / Demo");
           loadMockDatabase();
         }
@@ -895,7 +923,7 @@
 
     // --- 4. REAL-TIME SYNCHRONIZER (RULE 2 - No complex queries) ---
     function setupRealTimeSync() {
-      // Sinkronisasi Anggota / Pengguna
+      // Sync Users
       onSnapshot(getPublicCollectionRef('users'), (snap) => {
         const u = [];
         snap.forEach(doc => u.push(doc.data()));
@@ -908,67 +936,54 @@
           }
         }
         renderMemberManagement();
-      }, (err) => {
-        console.error("Sinkronisasi anggota terhambat:", err);
       });
 
-      // Sinkronisasi Postingan Pojok Warga
+      // Sync Posts
       onSnapshot(getPublicCollectionRef('posts'), (snap) => {
         const p = [];
         snap.forEach(doc => p.push({ fireId: doc.id, ...doc.data() }));
         p.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localPosts = p;
         renderFeed();
-      }, (err) => {
-        console.error("Sinkronisasi pojok warga terhambat:", err);
       });
 
-      // Sinkronisasi Agenda Kegiatan
+      // Sync Events
       onSnapshot(getPublicCollectionRef('events'), (snap) => {
         const e = [];
         snap.forEach(doc => e.push({ fireId: doc.id, ...doc.data() }));
         e.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localEvents = e;
         renderEvents();
-      }, (err) => {
-        console.error("Sinkronisasi agenda terhambat:", err);
       });
 
-      // Sinkronisasi Ide Cuan & Pemberdayaan
+      // Sync Cuan ideas
       onSnapshot(getPublicCollectionRef('cuan'), (snap) => {
         const c = [];
         snap.forEach(doc => c.push({ fireId: doc.id, ...doc.data() }));
         c.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
         localCuanIdeas = c;
         renderCuanIdeas();
-      }, (err) => {
-        console.error("Sinkronisasi Ide Cuan terhambat:", err);
       });
 
-      // Sinkronisasi Mutasi Kas
+      // Sync Finances
       onSnapshot(getPublicCollectionRef('transactions'), (snap) => {
         const t = [];
         snap.forEach(doc => t.push({ fireId: doc.id, ...doc.data() }));
         t.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localTransactions = t;
         renderFinance();
-      }, (err) => {
-        console.error("Sinkronisasi laporan kas terhambat:", err);
       });
 
-      // Sinkronisasi Polling
+      // Sync Polls
       onSnapshot(getPublicCollectionRef('polls'), (snap) => {
         const pl = [];
         snap.forEach(doc => pl.push({ fireId: doc.id, ...doc.data() }));
         pl.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localPolls = pl;
         renderPolls();
-      }, (err) => {
-        console.error("Sinkronisasi polling terhambat:", err);
       });
     }
 
-    // Meluncurkan database luring jika modul atau koneksi internet terputus
     function loadMockDatabase() {
       localPosts = [
         { fireId: "m1", author: "Fajar Pratama", rt: "RT 02", role: "Ketua", category: "Kegiatan", text: "Halo pemuda RW 15! Kita bakal adain mabar futsal seru besok Sabtu jam 4 sore di lapangan utama. Yang mau join, RSVP di tab AGENDA ya!", likes: 12, likedBy: [], comments: [], time: "2 jam yang lalu" }
@@ -1010,7 +1025,7 @@
 
       currentUser = user;
 
-      // Perbarui UI Header & Profil Menu Utama
+      // Update UI Header & Menu Info
       const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
       document.getElementById('avatar-placeholder').innerText = initials;
       document.getElementById('menu-avatar').innerText = initials;
@@ -1018,7 +1033,7 @@
       document.getElementById('menu-user-rt').innerText = `${currentUser.rt} / RW 15`;
       document.getElementById('menu-user-role-badge').innerText = currentUser.role;
 
-      // Perbarui Tampilan E-Card Anggota
+      // Update Member E-Card
       document.getElementById('card-initials').innerText = initials;
       document.getElementById('card-name').innerText = currentUser.name;
       document.getElementById('card-rt').innerText = `Asal: ${currentUser.rt} / RW 15`;
@@ -1075,9 +1090,8 @@
           await setDoc(getPublicDocRef('users', phone), newUser);
           window.showToast("Pendaftaran berhasil disimpan ke cloud database.");
         } catch (err) {
-          console.error("Gagal menyimpan ke Firestore:", err);
           localUsers.push(newUser);
-          window.showToast("Koneksi sibuk, pendaftaran sukses secara lokal.");
+          window.showToast("Database sibuk, akun disimpan secara lokal.");
         }
       } else {
         localUsers.push(newUser);
@@ -1901,27 +1915,27 @@
       }
     }
 
-    // --- FITUR SAVE CONFIG FIREBASE INTERAKTIF ---
+    // --- FITUR RAHSIA UNTUK SIMPAN CONFIG FIREBASE SECARA LOKAL ---
     window.saveFirebaseConfig = function() {
-      const inputVal = document.getElementById('firebase-config-input').value.trim();
+      const configStr = document.getElementById('firebase-config-textarea').value.trim();
       try {
-        const parsed = JSON.parse(inputVal);
+        const parsed = JSON.parse(configStr);
         if (!parsed.apiKey || !parsed.projectId) {
-          alert("Konfigurasi Firebase tampaknya tidak valid. Pastikan ada 'apiKey' dan 'projectId'!");
+          window.showToast("Format config tidak valid (apiKey & projectId wajib ada)!");
           return;
         }
-        localStorage.setItem('kartar15_firebase_config', JSON.stringify(parsed));
-        alert("Konfigurasi disimpan! Aplikasi akan memuat ulang untuk terhubung.");
-        window.location.reload();
+        localStorage.setItem('kartar15_secure_config', JSON.stringify(parsed));
+        window.showToast("Konfigurasi disimpan! Memuat ulang sistem...");
+        setTimeout(() => { window.location.reload(); }, 1500);
       } catch (err) {
-        alert("Gagal membaca format JSON. Silakan periksa kembali tanda koma dan tanda petik ganda Anda.");
+        window.showToast("Gagal membaca JSON. Cek koma & tanda petik!");
       }
     };
 
     window.resetConfigToDefault = function() {
-      localStorage.removeItem('kartar15_firebase_config');
-      alert("Kembali ke konfigurasi default preview platform. Aplikasi dimuat ulang.");
-      window.location.reload();
+      localStorage.removeItem('kartar15_secure_config');
+      window.showToast("Konfigurasi di-reset ke default. Memuat ulang...");
+      setTimeout(() => { window.location.reload(); }, 1500);
     };
   </script>
 
