@@ -11,7 +11,7 @@
   <!-- Google Fonts (Plus Jakarta Sans) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -37,10 +37,10 @@
   <!-- Mobile Wrapper Simulation for Desktop, Fullscreen on Mobile -->
   <div class="w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300">
     
-    <!-- Status Koneksi Database Global -->
-    <div class="absolute top-3 right-3 z-[100] flex items-center gap-1.5 bg-slate-950/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-full text-[9px] font-bold">
-      <span id="db-indicator-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-      <span id="db-indicator-text" class="text-slate-400">Menghubungkan...</span>
+    <!-- Status Koneksi Database Global (TITIK HIJAU INDIKATOR) -->
+    <div class="absolute top-3 right-3 z-[100] flex items-center gap-1.5 bg-slate-950/90 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-full text-[9px] font-bold">
+      <span id="db-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+      <span id="db-indicator-text" class="text-amber-500">Menghubungkan...</span>
     </div>
 
     <!-- ==================== SCREEN 1: LOGIN ==================== -->
@@ -669,6 +669,7 @@
     import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // --- 1. FIREBASE DYNAMIC CONFIGURATION & INTEGRATION ---
+    // Menggunakan konfigurasi runtime global __firebase_config jika tersedia
     const firebaseConfig = typeof __firebase_config !== 'undefined'
       ? JSON.parse(__firebase_config)
       : {
@@ -686,7 +687,7 @@
     let app, auth, db;
     let firebaseAvailable = false;
 
-    // Deteksi apakah konfigurasi Firebase valid
+    // Deteksi validitas konfigurasi Firebase
     if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "") {
       try {
         app = initializeApp(firebaseConfig);
@@ -694,7 +695,7 @@
         db = getFirestore(app);
         firebaseAvailable = true;
       } catch (e) {
-        console.warn("Gagal inisialisasi modul Firebase SDK, beralih ke mode offline simulator.", e);
+        console.warn("Gagal inisialisasi Firebase SDK. Berpindah ke simulasi database luring.", e);
       }
     }
 
@@ -724,7 +725,7 @@
       updateConnectionIndicator(false, "Menghubungkan...");
       if (firebaseAvailable) {
         try {
-          // --- RULE 3 - Auth Before Queries ---
+          // --- RULE 3 - Auth Sebelum Query ---
           if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
           } else {
@@ -737,12 +738,12 @@
               await checkAndInitializeDefaultData();
               setupRealTimeSync();
             } else {
-              updateConnectionIndicator(false, "Sesi Otentikasi Gagal");
+              updateConnectionIndicator(false, "Sesi Auth Gagal");
               loadMockDatabase();
             }
           });
         } catch (err) {
-          console.error("Gagal melakukan jabat tangan dengan Firebase Auth:", err);
+          console.error("Gagal melakukan handshake dengan Firebase Auth:", err);
           updateConnectionIndicator(false, "Database Lokal (Auth Error)");
           loadMockDatabase();
         }
@@ -752,7 +753,7 @@
       }
     });
 
-    // Mengubah visual titik koneksi Firebase
+    // Merubah visual indikator koneksi di pojok kanan atas
     function updateConnectionIndicator(connected, text) {
       const dot = document.getElementById('db-indicator-dot');
       const label = document.getElementById('db-indicator-text');
@@ -769,16 +770,16 @@
       }
     }
 
-    // Mempersiapkan data awal jika Firestore masih kosong demi kelancaran demo
+    // Inisialisasi data awal di Firestore jika koleksi masih kosong
     async function checkAndInitializeDefaultData() {
       try {
         const usersSnap = await getDocs(getPublicCollectionRef('users'));
         if (usersSnap.empty) {
-          // Masukkan pengguna demo utama
+          // Input user demo awal
           for (const u of defaultLocalUsers) {
             await setDoc(getPublicDocRef('users', u.phone), u);
           }
-          // Masukkan postingan demo awal
+          // Input post selamat datang awal
           const initialPost = {
             author: "Fajar Pratama",
             rt: "RT 02",
@@ -790,12 +791,12 @@
             comments: [
               { author: "Rian Anggara (RT 03)", text: "Gokil, siap ikut meramaikan bosku!" }
             ],
-            timestamp: Date.now() - 7200000, // 2 jam lalu
+            timestamp: Date.now() - 7200000,
             hasImage: false
           };
           await addDoc(getPublicCollectionRef('posts'), initialPost);
 
-          // Masukkan agenda demo awal
+          // Input agenda awal
           const initialEvent = {
             title: "Turnamen Mobile Legends Karta15",
             date: "28 Juni 2026",
@@ -807,7 +808,7 @@
           };
           await addDoc(getPublicCollectionRef('events'), initialEvent);
 
-          // Masukkan ide cuan awal
+          // Input ide cuan awal
           const initialCuan = {
             title: "Karta Kreatif: Daur Ulang Botol Plastik",
             author: "Siti Rahma",
@@ -821,7 +822,7 @@
           };
           await addDoc(getPublicCollectionRef('cuan'), initialCuan);
 
-          // Laporan keuangan awal
+          // Input transaksi keuangan awal
           const initialTrans = {
             date: "15 Jun 2026",
             desc: "Sponsorship Toko Sembako",
@@ -832,7 +833,7 @@
           };
           await addDoc(getPublicCollectionRef('transactions'), initialTrans);
 
-          // Polling awal
+          // Input jajak pendapat / polling awal
           const initialPoll = {
             question: "Lomba utama apa yang paling seru buat 17 Agustusan nanti?",
             opt1: "Turnamen ML Antar RT",
@@ -846,13 +847,13 @@
           await addDoc(getPublicCollectionRef('polls'), initialPoll);
         }
       } catch (e) {
-        console.warn("Gagal mengecek atau menginisialisasi database:", e);
+        console.warn("Gagal mengecek atau membuat database awal:", e);
       }
     }
 
-    // --- 4. REAL-TIME SYNCHRONIZER WITH ERROR CALLBACKS (RULE 2 - No complex queries used) ---
+    // --- 4. REAL-TIME SYNCHRONIZER (RULE 2 - No complex queries) ---
     function setupRealTimeSync() {
-      // Sinkronisasi Pengguna
+      // Sinkronisasi Anggota / Pengguna
       onSnapshot(getPublicCollectionRef('users'), (snap) => {
         const u = [];
         snap.forEach(doc => u.push(doc.data()));
@@ -866,19 +867,19 @@
         }
         renderMemberManagement();
       }, (err) => {
-        console.error("Sinkronisasi anggota terhambat:", err);
+        console.error("Sinkronisasi anggota error:", err);
       });
 
-      // Sinkronisasi Postingan
+      // Sinkronisasi Postingan Pojok Warga
       onSnapshot(getPublicCollectionRef('posts'), (snap) => {
         const p = [];
         snap.forEach(doc => p.push({ fireId: doc.id, ...doc.data() }));
-        // Sorting di memory (Rule 2)
+        // Lakukan pengurutan di memori (Rule 2)
         p.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         localPosts = p;
         renderFeed();
       }, (err) => {
-        console.error("Sinkronisasi Pojok Warga terhambat:", err);
+        console.error("Sinkronisasi pojok warga error:", err);
       });
 
       // Sinkronisasi Agenda Kegiatan
@@ -889,10 +890,10 @@
         localEvents = e;
         renderEvents();
       }, (err) => {
-        console.error("Sinkronisasi agenda terhambat:", err);
+        console.error("Sinkronisasi agenda error:", err);
       });
 
-      // Sinkronisasi Ide Cuan & Program Kerja
+      // Sinkronisasi Ide Cuan & Pemberdayaan
       onSnapshot(getPublicCollectionRef('cuan'), (snap) => {
         const c = [];
         snap.forEach(doc => c.push({ fireId: doc.id, ...doc.data() }));
@@ -900,10 +901,10 @@
         localCuanIdeas = c;
         renderCuanIdeas();
       }, (err) => {
-        console.error("Sinkronisasi Ide Cuan terhambat:", err);
+        console.error("Sinkronisasi Ide Cuan error:", err);
       });
 
-      // Sinkronisasi Keuangan Kas
+      // Sinkronisasi Mutasi Kas
       onSnapshot(getPublicCollectionRef('transactions'), (snap) => {
         const t = [];
         snap.forEach(doc => t.push({ fireId: doc.id, ...doc.data() }));
@@ -911,10 +912,10 @@
         localTransactions = t;
         renderFinance();
       }, (err) => {
-        console.error("Sinkronisasi kas terhambat:", err);
+        console.error("Sinkronisasi laporan kas keuangan error:", err);
       });
 
-      // Sinkronisasi Polling Aspirasi
+      // Sinkronisasi Polling
       onSnapshot(getPublicCollectionRef('polls'), (snap) => {
         const pl = [];
         snap.forEach(doc => pl.push({ fireId: doc.id, ...doc.data() }));
@@ -922,11 +923,11 @@
         localPolls = pl;
         renderPolls();
       }, (err) => {
-        console.error("Sinkronisasi polling terhambat:", err);
+        console.error("Sinkronisasi polling error:", err);
       });
     }
 
-    // Database fallback lokal jika Firebase benar-benar tidak terhubung
+    // Meluncurkan database luring jika modul atau koneksi internet terputus
     function loadMockDatabase() {
       localPosts = [
         { fireId: "m1", author: "Fajar Pratama", rt: "RT 02", role: "Ketua", category: "Kegiatan", text: "Halo pemuda RW 15! Kita bakal adain mabar futsal seru besok Sabtu jam 4 sore di lapangan utama. Yang mau join, RSVP di tab AGENDA ya!", likes: 12, likedBy: [], comments: [], time: "2 jam yang lalu" }
@@ -946,7 +947,7 @@
       renderAll();
     }
 
-    // --- 5. EXPOSE INTERACTIVE ACTIONS TO GLOBAL WINDOW SCOPE ---
+    // --- 5. EXPOSE EVERY INTERACTIVE ACTION TO GLOBAL WINDOW SCOPE ---
     window.handleLogin = async function() {
       const identifier = document.getElementById('login-identifier').value.trim();
       const password = document.getElementById('login-password').value;
@@ -968,7 +969,7 @@
 
       currentUser = user;
 
-      // Perbarui UI Header & Info Profil Utama
+      // Perbarui UI Header & Profil Menu Utama
       const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
       document.getElementById('avatar-placeholder').innerText = initials;
       document.getElementById('menu-avatar').innerText = initials;
@@ -976,7 +977,7 @@
       document.getElementById('menu-user-rt').innerText = `${currentUser.rt} / RW 15`;
       document.getElementById('menu-user-role-badge').innerText = currentUser.role;
 
-      // Perbarui Kartu Elektronik Anggota (E-Card)
+      // Perbarui Tampilan E-Card Anggota
       document.getElementById('card-initials').innerText = initials;
       document.getElementById('card-name').innerText = currentUser.name;
       document.getElementById('card-rt').innerText = `Asal: ${currentUser.rt} / RW 15`;
@@ -1033,9 +1034,9 @@
           await setDoc(getPublicDocRef('users', phone), newUser);
           window.showToast("Pendaftaran berhasil disimpan ke cloud database.");
         } catch (err) {
-          console.error("Gagal menyimpan ke cloud, mendaftar offline.", err);
+          console.error("Gagal menyimpan ke Firestore:", err);
           localUsers.push(newUser);
-          window.showToast("Koneksi sibuk, akun disimpan secara lokal.");
+          window.showToast("Database sibuk, pendaftaran sukses secara lokal.");
         }
       } else {
         localUsers.push(newUser);
@@ -1861,7 +1862,7 @@
   </script>
 
   <script>
-    // --- 7. INDEPENDENT GENERAL UI LOGIC (NEVER CRASHES DUE TO ARTIFACT SCOPING) ---
+    // --- 7. INDEPENDENT GENERAL UI LOGIC ---
     function handleLogoError() {
       document.getElementById('app-logo-img').classList.add('hidden');
       document.getElementById('logo-fallback').classList.remove('hidden');
@@ -1965,18 +1966,21 @@
       document.getElementById('event-desc').value = "";
     }
 
+    // Modal Ide Cuan
     function openCuanModal() { document.getElementById('modal-cuan').classList.remove('hidden'); }
     function closeCuanModal() {
       document.getElementById('modal-cuan').classList.add('hidden');
       document.getElementById('cuan-form').reset();
     }
 
+    // Modal Transaksi Kas
     function openTransactionModal() { document.getElementById('modal-transaction').classList.remove('hidden'); }
     function closeTransactionModal() {
       document.getElementById('modal-transaction').classList.add('hidden');
       document.getElementById('transaction-form').reset();
     }
 
+    // Modal Polling Aspirasi
     function openPollModal() { document.getElementById('modal-poll').classList.remove('hidden'); }
     function closePollModal() {
       document.getElementById('modal-poll').classList.add('hidden');
@@ -2051,7 +2055,7 @@
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
     }
 
-    // Attach all handlers explicitly to window
+    // Pasang handler secara eksplisit ke scope global window
     window.handleLogoError = handleLogoError;
     window.togglePasswordVisibility = togglePasswordVisibility;
     window.switchToScreen = switchToScreen;
