@@ -31,17 +31,38 @@
       background: #475569;
     }
   </style>
+  <!-- Mendefinisikan handleLogoError lebih awal untuk mencegah error saat gambar pertama kali gagal dimuat -->
+  <script>
+    function handleLogoError() {
+      const img = document.getElementById('app-logo-img');
+      const fallback = document.getElementById('logo-fallback');
+      if (img) img.classList.add('hidden');
+      if (fallback) {
+        fallback.classList.remove('hidden');
+        fallback.classList.add('flex');
+      }
+    }
+    window.handleLogoError = handleLogoError;
+  </script>
 </head>
-<body class="h-full flex justify-center items-center overflow-hidden bg-slate-900">
+<body class="h-full flex justify-center items-center overflow-hidden bg-slate-900 transition-all duration-300">
 
-  <!-- Mobile Wrapper Simulation for Desktop, Fullscreen on Mobile -->
-  <div class="w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300">
+  <!-- ==================== TOGGLE DUAL MODE TAMPILAN (Hanya muncul di Desktop) ==================== -->
+  <div class="hidden md:flex fixed top-4 right-4 z-[110] bg-slate-950/90 backdrop-blur-md border border-slate-800 p-1.5 rounded-2xl shadow-xl gap-1">
+    <button id="btn-view-hp" onclick="setViewMode('hp')" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/25">
+      <i class="fa-solid fa-mobile-screen-button"></i> Mode HP
+    </button>
+    <button id="btn-view-desktop" onclick="setViewMode('desktop')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+      <i class="fa-solid fa-desktop"></i> Mode Desktop
+    </button>
+  </div>
+
+  <!-- Mobile Wrapper Simulation or Full Desktop Container -->
+  <div id="app-wrapper" class="w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300">
     
-    <!-- Status Koneksi Database Global (TITIK HIJAU STATUS KONEKSI) -->
-    <button onclick="openConfigModal()" class="absolute top-3 right-3 z-[100] flex items-center gap-1.5 bg-slate-950/90 hover:bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[9px] font-bold transition-all active:scale-95" title="Klik untuk mengkonfigurasi database privat">
-      <span id="db-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-      <span id="db-indicator-text" class="text-amber-500">Menghubungkan...</span>
-      <i class="fa-solid fa-gears text-[8px] text-slate-500 ml-0.5"></i>
+    <!-- Status Koneksi Database Global (HANYA TITIK INDIKATOR DI POJOK KIRI ATAS) -->
+    <button onclick="openConfigModal()" class="absolute top-4 left-4 z-[100] flex items-center justify-center bg-slate-950/80 hover:bg-slate-900 border border-slate-800 w-8 h-8 rounded-full transition-all active:scale-95 shadow-md shadow-black/40" title="Klik untuk mengkonfigurasi database privat">
+      <span id="db-indicator-dot" class="w-3.5 h-3.5 rounded-full bg-amber-500 animate-pulse"></span>
     </button>
 
     <!-- ==================== SCREEN 1: LOGIN ==================== -->
@@ -49,7 +70,7 @@
       <div class="flex flex-col items-center justify-center flex-grow py-4">
         
         <!-- Logo Resmi KARTAR 15 Pondok Kelapa -->
-        <div class="relative mb-3 flex items-center justify-center">
+        <div class="relative mb-3 flex items-center justify-center mt-6">
           <img id="app-logo-img" src="1000146609.png" onerror="handleLogoError()" class="w-24 h-24 object-contain rounded-full border border-slate-700 bg-white/5 p-1 shadow-xl shadow-indigo-500/10" alt="Logo Karang Taruna RW 15 Pondok Kelapa">
           <div id="logo-fallback" class="hidden w-24 h-24 bg-gradient-to-tr from-indigo-600 to-rose-500 rounded-full items-center justify-center text-white border border-indigo-400">
             <i class="fa-solid fa-people-group text-3xl"></i>
@@ -174,7 +195,7 @@
     <!-- ==================== SCREEN 2: REGISTRATION ==================== -->
     <div id="register-screen" class="hidden absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-6 overflow-y-auto transition-all duration-500">
       <div class="flex flex-col items-center justify-center flex-grow py-4">
-        <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg border border-slate-800 mb-3 overflow-hidden">
+        <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg border border-slate-800 mb-3 overflow-hidden mt-6">
           <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-1">
         </div>
         <h1 class="text-2xl font-extrabold text-white">Daftar Anggota KARTAR 15</h1>
@@ -247,7 +268,7 @@
       
       <!-- TOP BAR -->
       <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-40">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 pl-8">
           <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-slate-800">
             <img src="1000146609.png" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/users.svg'" class="w-full h-full object-contain p-0.5">
           </div>
@@ -663,7 +684,7 @@
 
     <!-- ==================== MODAL: CONFIGURATION SETTINGS (MENGAMANKAN KREDENSIAL) ==================== -->
     <div id="modal-config" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md z-[200] flex items-center justify-center p-5">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-5 space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-5 space-y-4 font-sans">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest"><i class="fa-solid fa-user-shield mr-2"></i>Setelan Kredensial Firebase</h3>
           <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
@@ -677,7 +698,7 @@
 
         <div class="flex gap-2">
           <button onclick="resetConfigToDefault()" class="flex-1 py-2 border border-slate-800 hover:bg-slate-800 text-[10px] font-bold text-rose-400 rounded-xl transition-all">Reset Default</button>
-          <button onclick="saveFirebaseConfig()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white rounded-xl transition-all font-sans">Simpan & Mulai</button>
+          <button onclick="saveFirebaseConfig()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white rounded-xl transition-all">Simpan & Mulai</button>
         </div>
       </div>
     </div>
@@ -715,19 +736,16 @@
     const getPublicCollectionRef = (collectionName) => collection(db, 'artifacts', appId, 'public', 'data', collectionName);
     const getPublicDocRef = (collectionName, docId) => doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
 
-    // Memperbarui visual indikator koneksi di pojok kanan atas secara instan
+    // Memperbarui visual indikator koneksi di pojok kiri atas (Hanya Titik Bulat)
     function updateConnectionIndicator(connected, text) {
       const dot = document.getElementById('db-indicator-dot');
-      const label = document.getElementById('db-indicator-text');
-      if (dot && label) {
+      if (dot) {
         if (connected) {
-          dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
-          label.innerText = text;
-          label.className = "text-emerald-400";
+          dot.className = "w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse";
+          dot.setAttribute('title', "Terhubung ke database cloud: " + text);
         } else {
-          dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
-          label.innerText = text;
-          label.className = "text-amber-500";
+          dot.className = "w-3.5 h-3.5 rounded-full bg-amber-500 animate-pulse";
+          dot.setAttribute('title', "Koneksi Offline/Demo: " + text);
         }
       }
     }
@@ -752,7 +770,7 @@
       renderAll();
     }
 
-    // Fungsi Inisialisasi Firebase yang dibungkus agar aman dari Blocking Top-Level Await
+    // Inisialisasi Firebase aman
     function runSetup() {
       let config = null;
 
@@ -769,7 +787,7 @@
         }
       }
 
-      // Jika belum ada konfigurasi, ambil asinkronis dari API dengan batas 1,2 detik
+      // Ambil asinkronis dari API jika tidak ada config
       if (!config || !config.apiKey) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 1200);
@@ -817,7 +835,7 @@
         initAuth().then(() => {
           onAuthStateChanged(auth, async (user) => {
             if (user) {
-              updateConnectionIndicator(true, "Terhubung (Firebase)");
+              updateConnectionIndicator(true, "Aktif (Real-time Cloud)");
               const financeUpdate = document.getElementById('finance-update-text');
               if (financeUpdate) financeUpdate.innerText = "Update: Real-Time Cloud";
               await checkAndInitializeDefaultData();
@@ -837,7 +855,6 @@
       }
     }
 
-    // Inisialisasi data default di cloud jika masih kosong
     async function checkAndInitializeDefaultData() {
       try {
         const usersSnap = await getDocs(getPublicCollectionRef('users'));
@@ -1952,18 +1969,12 @@
       }
     };
 
-    // Jalankan inisialisasi aman tanpa mengunci alur rendering browser
+    // Jalankan inisialisasi
     runSetup();
   </script>
 
   <script>
     // --- INDEPENDENT GENERAL UI LOGIC ---
-    function handleLogoError() {
-      document.getElementById('app-logo-img').classList.add('hidden');
-      document.getElementById('logo-fallback').classList.remove('hidden');
-      document.getElementById('logo-fallback').classList.add('flex');
-    }
-
     function togglePasswordVisibility(inputId, btn) {
       const input = document.getElementById(inputId);
       const icon = btn.querySelector('i');
@@ -2102,7 +2113,7 @@
     }
 
     function shareKartaCard() {
-      const shareText = `Halo bro/sis! Gue baru saja terdaftar resmi di KARTAR 15 Pondok Kelapa. Ayo buruan join aplikasinya untuk mabar, diskusi ide usaha kreatif, dan memantau kas secara transparan!`;
+      const shareText = `Halo bro/sis! Gue baru saja terdaftar resmi di KARTAR 15 Pondok Kelapa. Ayo buruan join aplikasinya untuk mabar, diskusi id usaha kreatif, dan memantau kas secara transparan!`;
       const el = document.createElement('textarea');
       el.value = shareText;
       document.body.appendChild(el);
@@ -2116,8 +2127,32 @@
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
     }
 
+    // --- CORE DUAL VIEW MODE LOGIC ---
+    function setViewMode(mode) {
+      const wrapper = document.getElementById('app-wrapper');
+      const btnHp = document.getElementById('btn-view-hp');
+      const btnDesktop = document.getElementById('btn-view-desktop');
+      
+      if (mode === 'desktop') {
+        // Mode Desktop: Lebar Penuh, Tanpa Bingkai HP, Pojok Siku Kotak, Khas Dashboard Desktop
+        wrapper.className = "w-full h-full bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300";
+        
+        btnDesktop.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/25";
+        btnHp.className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200";
+        
+        showToast("Tampilan dialihkan ke Mode Desktop (Penuh)");
+      } else {
+        // Mode HP: Kembali ke bingkai simulasi smartphone
+        wrapper.className = "w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300";
+        
+        btnHp.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/25";
+        btnDesktop.className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200";
+        
+        showToast("Tampilan dialihkan ke Mode HP (Simulator)");
+      }
+    }
+
     // Attach all handlers explicitly to window
-    window.handleLogoError = handleLogoError;
     window.togglePasswordVisibility = togglePasswordVisibility;
     window.switchToScreen = switchToScreen;
     window.switchTab = switchTab;
@@ -2138,6 +2173,7 @@
     window.closeConfigModal = closeConfigModal;
     window.shareKartaCard = shareKartaCard;
     window.formatRupiah = formatRupiah;
+    window.setViewMode = setViewMode;
   </script>
 </body>
 </html>
