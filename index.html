@@ -174,8 +174,16 @@
             WA: <span class="text-slate-200">082444444444</span>
           </div>
           <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-cyan-400">Sekretaris:</span><br>
+            WA: <span class="text-slate-200">082555555555</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
             <span class="font-bold text-amber-400">Bendahara (Kas):</span><br>
             WA: <span class="text-slate-200">082333333333</span>
+          </div>
+          <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
+            <span class="font-bold text-violet-400">Koordinator:</span><br>
+            WA: <span class="text-slate-200">082666666666</span>
           </div>
           <div class="bg-slate-950/40 p-1.5 rounded border border-slate-800">
             <span class="font-bold text-emerald-400">Anggota Biasa:</span><br>
@@ -325,7 +333,7 @@
               <h2 class="text-xl font-bold text-white">Event & Kegiatan</h2>
               <p class="text-xs text-slate-400">Yuk ikutan dan berkontribusi langsung di lingkungan!</p>
             </div>
-            <!-- Pengurus/Wakil/Ketua Only Event Button -->
+            <!-- Pengurus/Wakil/Ketua/Sekretaris/Koordinator Only Event Button -->
             <button id="btn-create-event" onclick="openEventModal()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
               <i class="fa-solid fa-plus"></i> Tambah Event
             </button>
@@ -424,7 +432,7 @@
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-square-poll-vertical text-indigo-400"></i> Polling Aspirasi Aktif</h3>
-              <!-- Pengurus/Wakil/Ketua Only Poll Button -->
+              <!-- Pengurus/Wakil/Ketua/Sekretaris/Koordinator Only Poll Button -->
               <button id="btn-create-poll" onclick="openPollModal()" class="hidden bg-indigo-600/10 border border-indigo-500/20 hover:bg-indigo-600/20 text-indigo-400 text-[10px] font-bold px-2 py-1 rounded">
                 + Polling
               </button>
@@ -715,7 +723,9 @@
     let localUsers = [
       { name: "Fajar Pratama", phone: "082111111111", password: "123456", rt: "RT 02", role: "Ketua", hobby: "Futsal & Memimpin", joinDate: "05 Jan 2026", memberId: "K15-2026-112" },
       { name: "Bagas Saputra", phone: "082444444444", password: "123456", rt: "RT 04", role: "Wakil Ketua", hobby: "Mobile Legends", joinDate: "15 Feb 2026", memberId: "K15-2026-302" },
+      { name: "Sonia Fitri", phone: "082555555555", password: "123456", rt: "RT 01", role: "Sekretaris", hobby: "Menulis & Organisasi", joinDate: "01 Mar 2026", memberId: "K15-2026-512" },
       { name: "Siti Rahma", phone: "082333333333", password: "123456", rt: "RT 05", role: "Bendahara", hobby: "Membaca & Akuntansi", joinDate: "12 Mar 2026", memberId: "K15-2026-441" },
+      { name: "Dika Pratama", phone: "082666666666", password: "123456", rt: "RT 06", role: "Koordinator", hobby: "Olahraga & Event", joinDate: "18 Apr 2026", memberId: "K15-2026-613" },
       { name: "Rian Anggara", phone: "082222222222", password: "123456", rt: "RT 03", role: "Anggota", hobby: "MLBB & Musik", joinDate: "21 Jun 2026", memberId: "K15-2026-987" }
     ];
     let localPosts = [];
@@ -1493,7 +1503,9 @@
         let roleBadgeColor = "bg-slate-800 text-slate-400";
         if (post.role === "Ketua") roleBadgeColor = "bg-red-500/20 text-red-300 border border-red-500/30";
         else if (post.role === "Wakil Ketua") roleBadgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+        else if (post.role === "Sekretaris") roleBadgeColor = "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
         else if (post.role === "Bendahara") roleBadgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        else if (post.role === "Koordinator") roleBadgeColor = "bg-violet-500/20 text-violet-300 border border-violet-500/30";
         else if (post.role === "Pengurus") roleBadgeColor = "bg-indigo-500/20 text-indigo-300";
 
         const roleBadge = `<span class="${roleBadgeColor} text-[8px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wide">${post.role}</span>`;
@@ -1738,9 +1750,11 @@
           </div>
           
           <div>
-            <select onchange="window.changeUserRoleByKetua('${user.phone}', this.value)" ${isSelf ? 'disabled' : ''} class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[10px] text-indigo-300 font-bold focus:outline-none focus:ring-1 focus:ring-rose-500">
+            <select onchange="window.changeUserRoleByKetua('${user.phone}', this.value)" ${isSelf ? 'disabled' : ''} class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[10px] text-indigo-300 font-bold focus:outline-none focus:ring-1 focus:ring-rose-500 animate-none">
               <option value="Anggota" ${user.role === 'Anggota' ? 'selected' : ''}>Anggota</option>
               <option value="Pengurus" ${user.role === 'Pengurus' ? 'selected' : ''}>Pengurus</option>
+              <option value="Koordinator" ${user.role === 'Koordinator' ? 'selected' : ''}>Koordinator</option>
+              <option value="Sekretaris" ${user.role === 'Sekretaris' ? 'selected' : ''}>Sekretaris</option>
               <option value="Bendahara" ${user.role === 'Bendahara' ? 'selected' : ''}>Bendahara</option>
               <option value="Wakil Ketua" ${user.role === 'Wakil Ketua' ? 'selected' : ''}>Wakil Ketua</option>
               <option value="Ketua" ${user.role === 'Ketua' ? 'selected' : ''}>Ketua</option>
@@ -1836,7 +1850,9 @@
       const bendaharaBanner = document.getElementById('bendahara-banner');
       const panelKetua = document.getElementById('panel-ketua');
 
-      if (currentUser.role === 'Pengurus' || currentUser.role === 'Ketua' || currentUser.role === 'Wakil Ketua') {
+      const isAuthorizedCreator = ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Koordinator', 'Pengurus'].includes(currentUser.role);
+
+      if (isAuthorizedCreator) {
         if (btnCreateEvent) btnCreateEvent.classList.remove('hidden');
         if (btnCreatePoll) btnCreatePoll.classList.remove('hidden');
       } else {
@@ -1871,8 +1887,12 @@
           roleIndicator.className = "text-[10px] font-bold px-2 py-1 rounded-full border bg-red-950 border-red-500 text-red-400 flex items-center gap-1";
         } else if (currentUser.role === 'Wakil Ketua') {
           roleIndicator.className = "text-[10px] font-bold px-2 py-1 rounded-full border bg-purple-950 border-purple-500 text-purple-400 flex items-center gap-1";
+        } else if (currentUser.role === 'Sekretaris') {
+          roleIndicator.className = "text-[10px] font-bold px-2 py-1 rounded-full border bg-cyan-950 border-cyan-500 text-cyan-400 flex items-center gap-1";
         } else if (currentUser.role === 'Bendahara') {
           roleIndicator.className = "text-[10px] font-bold px-2 py-1 rounded-full border bg-amber-950 border-amber-500 text-amber-400 flex items-center gap-1";
+        } else if (currentUser.role === 'Koordinator') {
+          roleIndicator.className = "text-[10px] font-bold px-2 py-1 rounded-full border bg-violet-950 border-violet-500 text-violet-400 flex items-center gap-1";
         } else if (currentUser.role === 'Pengurus') {
           roleIndicator.className = "text-[10px] font-bold px-2 py-1 rounded-full border bg-indigo-950 border-indigo-500 text-indigo-400 flex items-center gap-1";
         } else {
@@ -1887,8 +1907,12 @@
           cardRoleIndicator.className = "text-[9px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full border border-red-500/20 font-bold uppercase";
         } else if (currentUser.role === 'Wakil Ketua') {
           cardRoleIndicator.className = "text-[9px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20 font-bold uppercase";
+        } else if (currentUser.role === 'Sekretaris') {
+          cardRoleIndicator.className = "text-[9px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/20 font-bold uppercase";
         } else if (currentUser.role === 'Bendahara') {
           cardRoleIndicator.className = "text-[9px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20 font-bold uppercase";
+        } else if (currentUser.role === 'Koordinator') {
+          cardRoleIndicator.className = "text-[9px] bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded-full border border-violet-500/20 font-bold uppercase";
         } else {
           cardRoleIndicator.className = "text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-bold uppercase";
         }
@@ -1987,6 +2011,7 @@
       }
     }
 
+    // Perbaikan Switch Screen
     function switchToScreen(screenId) {
       const login = document.getElementById('login-screen');
       const register = document.getElementById('register-screen');
