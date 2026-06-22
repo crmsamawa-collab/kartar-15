@@ -47,16 +47,6 @@
 </head>
 <body class="h-full flex justify-center items-center overflow-hidden bg-slate-900 transition-all duration-300">
 
-  <!-- ==================== TOGGLE DUAL MODE TAMPILAN (Hanya muncul di Desktop) ==================== -->
-  <div class="hidden md:flex fixed top-4 right-4 z-[110] bg-slate-950/90 backdrop-blur-md border border-slate-800 p-1.5 rounded-2xl shadow-xl gap-1">
-    <button id="btn-view-hp" onclick="setViewMode('hp')" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/25">
-      <i class="fa-solid fa-mobile-screen-button"></i> Mode HP
-    </button>
-    <button id="btn-view-desktop" onclick="setViewMode('desktop')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
-      <i class="fa-solid fa-desktop"></i> Mode Desktop
-    </button>
-  </div>
-
   <!-- Mobile Wrapper Simulation or Full Desktop Container -->
   <div id="app-wrapper" class="w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300">
     
@@ -2075,6 +2065,7 @@
       if (toast) toast.classList.add('hidden');
     }
 
+    // Modal Atur Postingan
     function openPostModal(suggestedTag = '') {
       document.getElementById('modal-post').classList.remove('hidden');
       document.getElementById('post-text').focus();
@@ -2152,48 +2143,35 @@
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
     }
 
-    // --- CORE DUAL VIEW MODE LOGIC WITH AUTO DETECT ---
-    function setViewMode(mode, showToastMessage = true) {
+    // --- LOGIKA DETEKSI OTOMATIS VIEW MODE ---
+    function setViewMode(mode) {
       const wrapper = document.getElementById('app-wrapper');
-      const btnHp = document.getElementById('btn-view-hp');
-      const btnDesktop = document.getElementById('btn-view-desktop');
+      if (!wrapper) return;
       
       if (mode === 'desktop') {
         // Mode Desktop: Lebar Penuh, Tanpa Bingkai HP, Pojok Siku Kotak, Khas Dashboard Desktop
         wrapper.className = "w-full h-full bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300";
-        
-        if (btnDesktop) btnDesktop.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/25";
-        if (btnHp) btnHp.className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200";
-        
-        if (showToastMessage) {
-          showToast("Tampilan dialihkan ke Mode Desktop (Penuh)");
-        }
       } else {
-        // Mode HP: Kembali ke bingkai simulasi smartphone
+        // Mode HP: Kembali ke bingkai simulasi smartphone (Mobile simulator)
         wrapper.className = "w-full max-w-md h-full md:h-[840px] md:rounded-3xl md:shadow-2xl md:border-8 md:border-slate-800 bg-slate-950 flex flex-col relative overflow-hidden transition-all duration-300";
-        
-        if (btnHp) btnHp.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/25";
-        if (btnDesktop) btnDesktop.className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200";
-        
-        if (showToastMessage) {
-          showToast("Tampilan dialihkan ke Mode HP (Simulator)");
-        }
       }
     }
 
-    // Deteksi otomatis perangkat saat halaman selesai dimuat
-    window.addEventListener('DOMContentLoaded', () => {
+    // Fungsi deteksi otomatis berdasarkan jenis perangkat dan lebar layar
+    function autoDetectViewMode() {
       // Cek apakah browser berjalan di perangkat mobile/tablet melalui userAgent atau lebar layar (< 1024px)
       const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
       
       if (isMobileDevice) {
-        // Jika dari HP/Tablet, gunakan Mode HP (dengan parameter false agar tidak memicu toast pada saat load awal)
-        setViewMode('hp', false);
+        setViewMode('hp');
       } else {
-        // Jika dari Laptop/PC, gunakan Mode Desktop penuh
-        setViewMode('desktop', false);
+        setViewMode('desktop');
       }
-    });
+    }
+
+    // Jalankan deteksi otomatis saat DOM dimuat dan saat layar diubah ukurannya (resize)
+    window.addEventListener('DOMContentLoaded', autoDetectViewMode);
+    window.addEventListener('resize', autoDetectViewMode);
 
     // Attach all handlers explicitly to window
     window.togglePasswordVisibility = togglePasswordVisibility;
